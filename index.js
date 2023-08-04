@@ -8,28 +8,29 @@ const cookieparser = require('cookie-parser')
 const app = express()
 require("dotenv").config()
 // cors connection
-// app.use(cors, ({
-//     credentials: true,
-//     origin: ['http://localhost:4200/']
-// }))
+app.use(cors({
+    credentials: true,
+    origin: [`process.env.FRONT_END_URL`]
+}))
 
 app.use(cookieparser())
 app.use(express.json())
 
+
 //user route  
-const userRoute=require('./routes/userRoute')
-app.route('/user',userRoute)
+const userRoute = require('./routes/userRoute')
+app.use('/user', userRoute)
 
-//admin route
-const adminRoute=require('./routes/adminRoute')
-app.route('/admin',adminRoute)
+// //admin route
+// const adminRoute = require('./routes/adminRoute')
+// app.use('/admin', adminRoute)
 
-//expert route
-const expertRoute=require('./routes/expertRoute')
-app.route('/expert',expertRoute)
+// //expert route
+// const expertRoute = require('./routes/expertRoute')
+// app.use('/expert', expertRoute)
 
 //port listning
-const port = process.env.PORT||5000
+const port = process.env.PORT || 5000
 
 // database connection 
 const Ddb_url = process.env.DB_URL
@@ -47,4 +48,3 @@ mongoose.connect(Ddb_url, {
     });
 
 
-  
