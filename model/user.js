@@ -35,7 +35,7 @@ isMailVerified:{
     type:Boolean,
     default:false
 },
-block:{
+isBlocked:{
 type:Boolean,
 default:false
 }
