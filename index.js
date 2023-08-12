@@ -10,7 +10,7 @@ require("dotenv").config()
 // cors connection
 app.use(cors({
     credentials: true,
-    origin: [`process.env.FRONT_END_URL`]
+    origin:'http://localhost:4200'
 }))
 
 app.use(cookieparser())
@@ -19,7 +19,7 @@ app.use(express.json())
 
 //user route  
 const userRoute = require('./routes/userRoute')
-app.use('/user', userRoute)
+app.use('', userRoute)
 
 // //admin route
 // const adminRoute = require('./routes/adminRoute')

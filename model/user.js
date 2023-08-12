@@ -38,6 +38,10 @@ isMailVerified:{
 isBlocked:{
 type:Boolean,
 default:false
+},
+otp:{
+type:Number,
+default:false
 }
 },
 {
