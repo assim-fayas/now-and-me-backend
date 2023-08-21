@@ -41,7 +41,7 @@ default:false
 },
 otp:{
 type:Number,
-default:false
+default:null
 }
 },
 {

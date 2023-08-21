@@ -1,5 +1,5 @@
-const User = require('../model/user')
-const Token = require('../model/token')
+const User = require('../model/user/user')
+const Token = require('../model/user/token')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const sendEmail = require('../service/sendEmail')
@@ -9,13 +9,12 @@ require('dotenv').config()
 //User Registration
 const userRegistration = async (req, res, next) => {
     try {
+        console.log("inside registration");
         const { name, email, password } = req.body;
         console.log(req.body);
         const check = await User.findOne({ email: email })
         if (check) {
-            res.status(400).send({
-                message: "Email alredy exist"
-            })
+            return res.status(400).send({message: "Email alredy exist"})
         }
         const hashedPassword = await bcrypt.hash(password, 10)
         const user = new User({
@@ -32,7 +31,7 @@ const userRegistration = async (req, res, next) => {
         await User.findOne({ email: email })
         const url = `${process.env.FRONT_END_URL}user/${added._id}/verify/${Ttoken.token}`
         sendEmail(user.email, " NOW AND ME mail verification", url)
-        res.status(201).send({ message: "An Email has been sent to your account please Verify" })
+        return res.status(201).send({ message: "An Email has been sent to your account please Verify" })
     } catch (error) {
         console.log(error);
         res.status(500).send({ message: error })
@@ -42,6 +41,7 @@ const userRegistration = async (req, res, next) => {
 const userLogin = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
+        console.log("inside user");
         if (!user) {
             return res.status(404).send({ message: "user not found" })
         }
@@ -54,8 +54,10 @@ const userLogin = async (req, res) => {
             return res.status(404).send({ message: "your account is suspended" })
         }
         if (!user.isMailVerified) {
+            console.log("inside email ilaaaa");
             const token = await Token.findOne({ userId: user._id })
             if (!token) {
+                console.log("inside token ilaaaa");
                 const tokenGen = crypto.randomBytes(32).toString("hex")
                 const Ttoken = await new Token({
                     userId: user._id,
@@ -64,13 +66,15 @@ const userLogin = async (req, res) => {
                 let url = `${process.env.FRONT_END_URL}user/${user._id}/verify/${Ttoken.token}`
                 console.log("url", url);
                 sendEmail(user.email, "NOW & ME mail verification", url)
-                return res.status(200).send({ message: "An Email has been sent to your account please Verify" })
+
             }
+            return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
+
         }
         const { _id } = user.toJSON();
         const token = jwt.sign({ _id: _id }, process.env._JWT_USER_SECERETKEY, { expiresIn: 3600 })
-        console.log(token);
-        res.json({
+        console.log("usertoken",token);
+        res.status(200).json({
             token
         })
 
@@ -83,17 +87,27 @@ const userLogin = async (req, res) => {
 const verify = async (req, res) => {
     try {
         console.log("inside verify route");
-        const user = await User.findOne({ _id: req.params.id })
+
+        const id = req.params.id
+        const token = req.params.token
+        const user = await User.findOne({ _id: id })
+        console.log("userrr", user);
         if (!user) {
             return res.status(400).send({ message: "invalid Link" })
         }
-        const token = await Token.findOne({ token: req.params.token })
-        if (!token) {
-            return res.status(400).send({ message: "invalid Link" })
+        const findtoken = await Token.findOne({ token: token })
+        console.log(findtoken, "tokennn");
+        if (!findtoken) {
+            return res.status(400).send({ message: "invalid token" })
         }
-        const verify = await User.updateOne({ _id: req.params.id }, { set: { isMailVerified: true } })
+        const verify = await User.updateOne({ _id: id }, { $set: { isMailVerified:true } })
+        console.log(verify, "user verified");
+        console.log("updated user", user);
         if (verify) {
-            const deleteToken = await Token.deleteOne({ token: req.params.token })
+            const deleteToken = await Token.deleteOne({ token: token })
+            console.log("token deleted");
+            res.json({ message: "success" })
+
         }
     } catch (error) {
         console.log(error);
@@ -102,8 +116,8 @@ const verify = async (req, res) => {
 }
 
 
-//user change Password
-const changePassword = async (req, res) => {
+//user password   otp generating
+const otp = async (req, res) => {
     try {
         console.log("inside the change password");
         const { email } = req.body
@@ -114,26 +128,60 @@ const changePassword = async (req, res) => {
             })
         }
         if (user.isBlocked === true) {
-            res.status(404).send({
+            return res.status(404).send({
                 messasge: "You'r  Accound is Suspended"
             })
         }
         let otp = Math.random().toString().substr(-4)
-        console.log(otp);
+        console.log("otp", otp);
         sendEmail(user.email, "NOW & ME mail password reset", otp)
+        const addOtpToDb = await
+            User.findOneAndUpdate(
+                {}, { $set: { otp: otp } }, { new: true })
         return res.status(200).send({ message: "An otp has been sent to your account please Verify" })
-
     } catch (error) {
         console.log(error);
         res.status(500).send({ message: 'Verification failed' })
     }
 }
 
+
+// otp verifying
+
 const veryfyOtp = async (req, res) => {
-    const { otp } = req.body
-    let userOtp = User.find({ otp: otp })
-    if (!userOtp) {
-        res.status(404).send({ message: "Invalid Otp" })
+    try {
+        console.log("inside verify otp");
+        const { otp } = req.body
+        let userOtp = await User.find({ otp: otp })
+            .then(userOtp => {
+                if (userOtp && userOtp.length > 0) {
+                    return res.status(200).send({ message: "user verified dddd" })
+                } else {
+                    return res.status(404).send({ message: "Invalid Otp" })
+                }
+            })
+        const deleteOtp = await User.findOneAndUpdate({ otp: otp }, { $set: { otp: '' } }, { new: true })
+    }
+    catch (error) {
+        res.status(500).send({ message: "verification failed" })
+    }
+
+}
+
+//reset password
+
+const changePassword = async (req, res) => {
+    try {
+        console.log("inside change password");
+        const { password } = req.body
+        console.log(password, "backed ethiya password");
+        const hashedPassword = await bcrypt.hash(password, 10)
+        console.log(hashedPassword, "hashed passworddddd");
+        const newPass = await User.findOneAndUpdate({}, { $set: { password: hashedPassword } })
+        console.log("password updated");
+        return res.status(200).send({ message: "password updated successfully" })
+    } catch (error) {
+        res.status(500).send({ message: "verification failed" })
     }
 }
 
@@ -141,6 +189,7 @@ module.exports = {
     userRegistration,
     verify,
     userLogin,
-    changePassword,
-    veryfyOtp
+    otp,
+    veryfyOtp,
+    changePassword
 }
