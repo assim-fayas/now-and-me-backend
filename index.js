@@ -27,7 +27,7 @@ app.use('/admin', adminRoute)
 
 //expert route
 const expertRoute = require('./routes/expertRoute')
-app.use('/expert', expertRoute)
+app.use('/experts', expertRoute)
 
 //port listning
 const port = process.env.PORT || 5000

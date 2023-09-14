@@ -1,21 +1,26 @@
 const mongoose = require('mongoose')
+
+// const profileSchema = new mongoose.Schema({
+
+// })
+
 const expertSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        default: null
     },
     email: {
         type: String,
         unique: true,
-        required: true
+        default: null
     },
-    mobile: {
+    phone: {
         type: Number,
-        required: true
+        default: null
     },
     password: {
         type: String,
-        required: true
+        default: null
     },
     isMailVerified: {
         type: Boolean,
@@ -29,6 +34,19 @@ const expertSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    otp: {
+        type: Number,
+        default: null
+    },
+    dob: {
+        type: String,
+        default: null
+    },
+    city: {
+        type: String,
+        default: null
+    }
+
 },
     {
         timestamps: {
