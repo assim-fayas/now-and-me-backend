@@ -10,6 +10,7 @@ const crypto = require('crypto')
 const { log } = require('console')
 const { AsyncLocalStorage } = require('async_hooks')
 require('dotenv').config()
+const mongoose = require('mongoose');
 
 //User Registration
 const userRegistration = async (req, res, next) => {
@@ -160,7 +161,7 @@ const veryfyOtp = async (req, res) => {
         let userOtp = await User.find({ otp: otp })
             .then(userOtp => {
                 if (userOtp && userOtp.length > 0) {
-                    return res.status(200).send({ message: "user verified dddd" })
+                    res.status(200).send({ message: "user verified dddd" })
                 } else {
                     return res.status(404).send({ message: "Invalid Otp" })
                 }
@@ -378,7 +379,7 @@ const getLikesandComments = async (req, res) => {
                     preserveNullAndEmptyArrays: true // Preserve posts without comments
                 }
             },
-           
+
             {
                 $project: {
                     _id: 1, // Include the post ID
@@ -416,7 +417,7 @@ const getLikesandComments = async (req, res) => {
     }
 }
 
-    
+
 
 const editPost = async (req, res) => {
     try {
@@ -631,7 +632,93 @@ const updateComment = async (req, res) => {
 }
 
 
+const thoughtsOfSingleUser = async (req, res) => {
+    try {
+        console.log("inside thoughts of single user");
+        const userId = req.headers.userId
+        console.log("user iddddddd", userId);
+        if (!userId) {
+            return res.status(401).send({ message: "Un Authenticated user" })
+        }
+        const convertedUserId =new mongoose.Types.ObjectId(userId);
+        const posts = await Post.aggregate([
+            {
+                $match: { user:convertedUserId,block:false}// Filter posts with block: false
+            },
+            {
+                $lookup: {
+                    from: 'likes', // Name of the "Like" collection
+                    localField: '_id',
+                    foreignField: 'post',
+                    as: 'likes',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'comments', // Name of the "Comment" collection
+                    localField: '_id',
+                    foreignField: 'post',
+                    as: 'comments',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'users', // Name of the "User" collection
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails',
+                },
+            },
+            {
+                $unwind: '$userDetails', // Since $lookup returns an array, unwind it
+            },
+            {
+                $lookup: {
+                    from: 'users', // Name of the "User" collection for comments
+                    localField: 'comments.user', // Match user ID from comments
+                    foreignField: '_id',
+                    as: 'commentUsers',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$commentUsers',
+                    preserveNullAndEmptyArrays: true // Preserve posts without comments
+                }
+            },
 
+            {
+                $project: {
+                    _id: 1, // Include the post ID
+                    user: 1, // Include the user ID
+                    content: 1, // Include the content
+                    tags: 1,
+                    timestamp: 1, // Include the timestamp
+                    totalLikes: { $size: '$likes' }, // Calculate total likes
+                    totalComments: { $size: '$comments' }, // Calculate total comments
+                    likes: '$likes.user', // Include the users who liked the post
+                    'userDetails.name': 1, // Include the user's name
+
+                    anonymous: 1,
+                    comments: {
+                        _id: 1,
+                        content: 1, // Include the comment content
+                        timestamp: 1, // Include the comment timestamp
+                        userName: '$commentUsers.name', // Include the user's name for each comment
+                        userId: '$commentUsers._id', // Include the user's ID for each comment
+                    },
+                },
+            },
+
+        ]);
+        console.log(posts,"posttttttttttttttttttttttttttttttttttttttttttttttttttt" );
+        return res.json(posts);
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ message: "error in fetching thoughts of single user" })
+
+    }
+}
 
 
 
@@ -656,5 +743,6 @@ module.exports = {
     getAllComments,
     deleteComment,
     editComment,
-    updateComment
+    updateComment,
+    thoughtsOfSingleUser
 }

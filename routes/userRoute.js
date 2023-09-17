@@ -3,6 +3,7 @@ const userRoute = express.Router()
 
 // controller
 const userController = require("../controller/userController")
+const ProfileController=require("../controller/profileController")
 const authMiddleware = require("../middlewares/auth")
 //user routes
 
@@ -30,4 +31,22 @@ userRoute.get('/getComments', authMiddleware, userController.getAllComments)
 userRoute.post('/deleteComment/:id', authMiddleware, userController.deleteComment)
 userRoute.post('/editComment/:id', authMiddleware, userController.editComment)
 userRoute.patch('/updateComment/:id', authMiddleware, userController.updateComment)
+userRoute.get('/thoughtSingleUser',authMiddleware,userController.thoughtsOfSingleUser)
+
+//profile
+userRoute.get('/userDetails',authMiddleware,ProfileController.userDetails)
+userRoute.put('/updateProfile',authMiddleware,ProfileController.updateProfile)
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = userRoute
