@@ -8,11 +8,14 @@ const sendEmail = require('../service/sendEmail')
 const { log } = require('console')
 
 //expert registration
-const expertRegistration = async (req, res) => {
+const expertRegistration1 = async (req, res) => {
     try {
         console.log("inside expert registration");
-        const { name, email, phone, password } = req.body;
         console.log(req.body);
+
+        console.log(req.body);
+        const { name, email, contact, password, profileImage, governmentId, city, dob } = req.body;
+
         const check = await Expert.findOne({ email: email })
         if (check) {
             return res.status(400).send({ message: "Email alredy taken" })
@@ -21,25 +24,104 @@ const expertRegistration = async (req, res) => {
         const expert = new Expert({
             name: name,
             email: email,
-            phone: phone,
-            password: hashedPassword
+            password: hashedPassword,
+            contact: contact,
+            profileImage: profileImage,
+            governmentId: governmentId,
+            city: city,
+            dob: dob
         })
         const saved = await expert.save()
         console.log(saved, " expert saved");
-        const token = crypto.randomBytes(32).toString("hex")
-        const Ttoken = await new Token({
-            userId: saved._id,
-            token: token
-        }).save();
-        await Expert.findOne({ email: email })
-        console.log("after saved");
-        const url = `${process.env.FRONT_END_URL}experts/expert/${expert._id}/verify/${Ttoken.token}`
-        console.log(url, "url");
-        sendEmail(expert.email, "NOW AND ME MAIL VERIFICATION", url)
-        return res.status(200).send({ message: "An Email has been sent to your account please Verify" })
+        const objectId = saved._id
+        const expertid = objectId.toHexString();
+
+        if (saved) {
+            return res.status(200).json({ expertid })
+        } else {
+            return res.status(404).send({ message: "Error in expert registration1" })
+        }
+        // const token = crypto.randomBytes(32).toString("hex")
+        // const Ttoken = await new Token({
+        //     userId: saved._id,
+        //     token: token
+        // }).save();
+        // await Expert.findOne({ email: email })
+        // console.log("after saved");
+        // const url = `${process.env.FRONT_END_URL}experts/expert/${expert._id}/verify/${Ttoken.token}`
+        // console.log(url, "url");
+        // sendEmail(expert.email, "NOW AND ME MAIL VERIFICATION", url)
+        // return res.status(200).send({ message: "An Email has been sent to your account please Verify" })
 
     } catch (error) {
-        res.status(500).send({ message: "Error in expert registration" })
+        res.status(500).send({ message: "Error in expert registration1" })
+        console.log(error);
+    }
+}
+const expertRegistration2 = async (req, res) => {
+    try {
+        console.log("inside expert registration2");
+        console.log(req.body);
+        console.log(req.body.id);
+        const expertid = req.body.id
+        const verifyExpert = await Expert.findOne({ _id: expertid })
+        if (!verifyExpert) {
+            return res.status(403).send({ message: "please compleate first stage of registration" })
+        }
+        const { form2: { educationalQualification, educationalInstitute, specialization, experience, certification } } = req.body;
+
+        const updateExpert = await Expert.updateOne(
+            { _id: expertid },
+            {
+                $set: {
+                    educationalQualification: educationalQualification,
+                    educationalInstitute: educationalInstitute,
+                    specialization: specialization,
+                    experience: experience,
+                    certification: certification,
+                },
+            }
+        );
+        console.log(updateExpert);
+        if (updateExpert) {
+            return res.status(200).json({ expertid })
+        } else {
+            return res.status(404).send({ message: "Error in expert registration2" })
+        }
+
+
+    } catch (error) {
+        res.status(500).send({ message: "Error in expert registration2" })
+        console.log(error);
+    }
+}
+
+// registration form3
+
+const expertRegistration3 = async (req, res) => {
+    try {
+        console.log("inside expert registration3");
+        console.log(req.body);
+        console.log(req.body.id);
+        const expertid = req.body.id
+
+        const verifyExpert = await Expert.findOne({ _id: expertid })
+        if (!verifyExpert) {
+            return res.status(403).send({ message: "please compleate second stage of registration " })
+        }
+        const { form3: { shortBio, websiteLinks, services, hourlySessionCharge, languages, idealClient } } = req.body;
+
+        const updateExpert = await Expert.updateOne({ _id: expertid }, { $set: { bio: shortBio, websiteLink: websiteLinks, services: services, hourlySessionCharge: hourlySessionCharge, languages: languages, idealClient: idealClient } })
+
+        if (updateExpert) {
+            return res.status(200).send({ message: "Expert registration 3 compleated" })
+        } else {
+            return res.status(404).send({ message: "Error in expert registration2" })
+        }
+
+
+    } catch (error) {
+        res.status(500).send({ message: "Error in expert registration2" })
         console.log(error);
     }
 }
@@ -181,7 +263,9 @@ const changePassword = async (req, res) => {
 
 
 module.exports = {
-    expertRegistration,
+    expertRegistration1,
+    expertRegistration2,
+    expertRegistration3,
     expertLogin,
     verify,
     otp,

@@ -14,10 +14,6 @@ const expertSchema = new mongoose.Schema({
         unique: true,
         default: null
     },
-    phone: {
-        type: Number,
-        default: null
-    },
     password: {
         type: String,
         default: null
@@ -45,7 +41,63 @@ const expertSchema = new mongoose.Schema({
     city: {
         type: String,
         default: null
-    }
+    },
+    contact: {
+        type: String,
+        default: null
+    },
+    governmentId: {
+        type: String,
+        default: null
+    },
+    profileImage: {
+        type: String,
+        default: null
+    },
+    educationalQualification: {
+        type: String,
+        default: null
+    },
+    educationalInstitute: {
+        type: String,
+        default: null
+    },
+    specialization: {
+        type: Array,
+        default: null
+    },
+    experience: {
+        type: String,
+        default: null
+    },
+    certification: {
+        type: String,
+        default: null
+    },
+    bio: {
+        type: String,
+        default: null
+    },
+    websiteLink: {
+        type: String,
+        default: null
+    },
+    services: {
+        type: Array,
+        default: null
+    },
+    hourlySessionCharge: {
+        type: Number,
+        default: null
+    },
+    languages: {
+        type: Array,
+        default: null
+    },
+    idealClient: {
+        type: Array,
+        default: null
+    },
 
 },
     {
