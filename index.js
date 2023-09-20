@@ -21,13 +21,13 @@ app.use(express.json())
 const userRoute = require('./routes/userRoute')
 app.use('', userRoute)
 
-// //admin route
-// const adminRoute = require('./routes/adminRoute')
-// app.use('/admin', adminRoute)
+//admin route
+const adminRoute = require('./routes/adminRoute')
+app.use('/admin', adminRoute)
 
-// //expert route
-// const expertRoute = require('./routes/expertRoute')
-// app.use('/expert', expertRoute)
+//expert route
+const expertRoute = require('./routes/expertRoute')
+app.use('/expert', expertRoute)
 
 //port listning
 const port = process.env.PORT || 5000
