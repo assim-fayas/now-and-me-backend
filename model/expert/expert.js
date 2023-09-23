@@ -1,21 +1,22 @@
 const mongoose = require('mongoose')
+
+// const profileSchema = new mongoose.Schema({
+
+// })
+
 const expertSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        default: null
     },
     email: {
         type: String,
         unique: true,
-        required: true
-    },
-    mobile: {
-        type: Number,
-        required: true
+        default: null
     },
     password: {
         type: String,
-        required: true
+        default: null
     },
     isMailVerified: {
         type: Boolean,
@@ -29,6 +30,75 @@ const expertSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    otp: {
+        type: Number,
+        default: null
+    },
+    dob: {
+        type: String,
+        default: null
+    },
+    city: {
+        type: String,
+        default: null
+    },
+    contact: {
+        type: String,
+        default: null
+    },
+    governmentId: {
+        type: String,
+        default: null
+    },
+    profileImage: {
+        type: String,
+        default: null
+    },
+    educationalQualification: {
+        type: String,
+        default: null
+    },
+    educationalInstitute: {
+        type: String,
+        default: null
+    },
+    specialization: {
+        type: Array,
+        default: null
+    },
+    experience: {
+        type: String,
+        default: null
+    },
+    certification: {
+        type: String,
+        default: null
+    },
+    bio: {
+        type: String,
+        default: null
+    },
+    websiteLink: {
+        type: String,
+        default: null
+    },
+    services: {
+        type: Array,
+        default: null
+    },
+    hourlySessionCharge: {
+        type: Number,
+        default: null
+    },
+    languages: {
+        type: Array,
+        default: null
+    },
+    idealClient: {
+        type: Array,
+        default: null
+    },
+
 },
     {
         timestamps: {
