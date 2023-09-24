@@ -262,6 +262,47 @@ const changePassword = async (req, res) => {
 
 
 
+const expertlisting = async (req, res) => {
+    try {
+        const userId = req.headers.userId
+        console.log("inside expertlisting");
+        const allExperts = await Expert.find({})
+        if (allExperts) {
+            res.status(200).json({ allExperts, userId })
+        } else {
+            res.status(404).send({ message: "Error in Expert Listing" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Error in expertListing" })
+    }
+}
+
+
+
+const viewExpert = async (req, res) => {
+    try {
+        const expertId = req.params.id
+        if (!expertId) {
+            res.status(403).send({ message: "un autharized access" })
+        }
+        const expert = await Expert.findById({ _id: expertId })
+        if (!expert) {
+            console.log(expert)
+            res.status(404).send({ message: "Error in expert viewing" })
+        } else {
+            res.status(200).json(expert)
+        }
+    } catch (error) {
+        res.status(500).send({ message: "Error in expert viewing" })
+        console.log(error);
+    }
+}
+
+
+
+
 module.exports = {
     expertRegistration1,
     expertRegistration2,
@@ -270,5 +311,7 @@ module.exports = {
     verify,
     otp,
     verifyOtp,
-    changePassword
+    changePassword,
+    expertlisting,
+    viewExpert
 }

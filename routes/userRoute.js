@@ -3,8 +3,15 @@ const userRoute = express.Router()
 
 // controller
 const userController = require("../controller/userController")
-const ProfileController=require("../controller/profileController")
+const ProfileController = require("../controller/profileController")
+const chatController = require("../controller/chatController")
+
+
+//middleware
 const authMiddleware = require("../middlewares/auth")
+const expertMiddleware = require("../middlewares/expertAuth")
+
+
 //user routes
 
 //user login,registrations
@@ -16,6 +23,7 @@ userRoute.post('/changePassword', userController.changePassword)
 userRoute.get('/user/:id/verify/:token', userController.verify)
 userRoute.post('/veryfyOtp', userController.veryfyOtp)
 userRoute.get('/check', userController.check)
+userRoute.get('/listUsers', expertMiddleware, userController.allUsers)
 
 //community
 userRoute.post('/thoughts', authMiddleware, userController.postThoughts)
@@ -31,15 +39,20 @@ userRoute.get('/getComments', authMiddleware, userController.getAllComments)
 userRoute.post('/deleteComment/:id', authMiddleware, userController.deleteComment)
 userRoute.post('/editComment/:id', authMiddleware, userController.editComment)
 userRoute.patch('/updateComment/:id', authMiddleware, userController.updateComment)
-userRoute.get('/thoughtSingleUser',authMiddleware,userController.thoughtsOfSingleUser)
+userRoute.get('/thoughtSingleUser', authMiddleware, userController.thoughtsOfSingleUser)
 
 //profile
-userRoute.get('/userDetails',authMiddleware,ProfileController.userDetails)
-userRoute.put('/updateProfile',authMiddleware,ProfileController.updateProfile)
+userRoute.get('/userDetails', authMiddleware, ProfileController.userDetails)
+userRoute.put('/updateProfile', authMiddleware, ProfileController.updateProfile)
 
 
 
 
+
+//chats
+
+userRoute.post('/sendMessage', chatController.sendMessage)
+userRoute.get('/showChats/receiverId/:receiver/senderId/:sender', chatController.fetchChats)
 
 
 

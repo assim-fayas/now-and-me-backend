@@ -640,10 +640,10 @@ const thoughtsOfSingleUser = async (req, res) => {
         if (!userId) {
             return res.status(401).send({ message: "Un Authenticated user" })
         }
-        const convertedUserId =new mongoose.Types.ObjectId(userId);
+        const convertedUserId = new mongoose.Types.ObjectId(userId);
         const posts = await Post.aggregate([
             {
-                $match: { user:convertedUserId,block:false}// Filter posts with block: false
+                $match: { user: convertedUserId, block: false }// Filter posts with block: false
             },
             {
                 $lookup: {
@@ -711,7 +711,7 @@ const thoughtsOfSingleUser = async (req, res) => {
             },
 
         ]);
-        console.log(posts,"posttttttttttttttttttttttttttttttttttttttttttttttttttt" );
+        console.log(posts, "posttttttttttttttttttttttttttttttttttttttttttttttttttt");
         return res.json(posts);
     } catch (error) {
         console.log(error)
@@ -720,7 +720,21 @@ const thoughtsOfSingleUser = async (req, res) => {
     }
 }
 
+const allUsers = async (req, res) => {
+    try {
 
+        const expertid = req.headers.expertId;
+        const allUser = await User.find({})
+        if (allUser) {
+            return res.status(200).json({ allUser, expertid })
+        } else {
+            return res.status(404).send({ message: "error in fetching users" })
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in fetching users" })
+    }
+}
 
 
 module.exports = {
@@ -744,5 +758,6 @@ module.exports = {
     deleteComment,
     editComment,
     updateComment,
-    thoughtsOfSingleUser
+    thoughtsOfSingleUser,
+    allUsers
 }
