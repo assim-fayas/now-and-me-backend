@@ -1,8 +1,6 @@
 const mongoose = require('mongoose')
 
-// const profileSchema = new mongoose.Schema({
 
-// })
 
 const expertSchema = new mongoose.Schema({
     name: {

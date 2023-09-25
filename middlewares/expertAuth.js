@@ -1,9 +1,9 @@
-// authMiddleware.js
+// expertAuthMiddleware.js
 const jwt = require('jsonwebtoken');
-const authMiddleware = (req, res, next) => {
+
+const expertAuthMiddleware = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
-
 
         if (!token) {
             return res.status(401).json({
@@ -13,18 +13,16 @@ const authMiddleware = (req, res, next) => {
             });
         }
 
-
-        jwt.verify(token, process.env._JWT_USER_SECERETKEY, (err, decoded) => {
+        jwt.verify(token, process.env._JWT_EXPERT_SECERETKEY, (err, decoded) => {
             if (err) {
-                console.log("user Authentication faild");
+                console.log("Expert Authentication failed");
                 return res.status(401).json({
                     auth: false,
                     status: "failed",
                     message: "Failed to authenticate",
                 });
             } else {
-
-                req.headers.userId = decoded._id; // user ID is stored in '_id'
+                req.headers.expertId = decoded._id; // Expert ID is stored in '_id'
                 next();
             }
         });
@@ -35,7 +33,6 @@ const authMiddleware = (req, res, next) => {
             message: "Internal server error",
         });
     }
-
-
 }
-module.exports = authMiddleware
+
+module.exports = expertAuthMiddleware;
