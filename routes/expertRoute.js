@@ -4,6 +4,7 @@ const expertRoute = express.Router()
 
 //expert controller
 const expertController = require('../controller/expertController')
+const slotAndBookingController = require('../controller/slotBooking')
 
 // middlewares
 const authMiddleware = require("../middlewares/auth")
@@ -27,6 +28,7 @@ expertRoute.post('/verifyOtp', expertController.verifyOtp)
 expertRoute.get('/expertListing', authMiddleware, expertController.expertlisting)
 expertRoute.post('/viewExpert/:id', expertController.viewExpert)
 
-
+//slots
+expertRoute.post('/addSlote', expertMiddleware, slotAndBookingController.addSlots)
 
 module.exports = expertRoute
