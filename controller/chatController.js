@@ -1,12 +1,12 @@
 
 const Chat = require('../model/chat/chat')
-const sendMessage = async (req, res) => {
+const sendMessage = async (message) => {
     try {
         console.log("Inside send message");
-        const { sender, receiver, text, senderType, receiverType } = req.body;
-        console.log(req.body);
-        const senderId = sender;
-        const reciverId = receiver;
+        // const { sender, receiver, text, senderType, receiverType } = req.body;
+        // console.log(req.body);
+        const senderId = message.sender;
+        const reciverId = message.receiver;
 
         let existingConnection;
 
@@ -22,10 +22,10 @@ const sendMessage = async (req, res) => {
                 }
 
                 const newMessage = {
-                    text: text,
-                    senderType: senderType,
+                    text: message.text,
+                    senderType: message.senderType,
                     senderId: senderId,
-                    reciverType: receiverType,
+                    reciverType: message.receiverType,
                     reciverId: reciverId,
                     timestamp: Date.now()
                 };
@@ -34,11 +34,11 @@ const sendMessage = async (req, res) => {
                 return existingConnection.save();
             })
             .then((result) => {
-                res.status(200).send({ message: "Chat saved successfully" });
+                console.log({ message: "Chat saved successfully" });;
             })
             .catch((error) => {
-                console.log(error);
-                res.status(500).send({ message: "Error in message sending" });
+                console.log({ message: "Error in message sending" });
+
             });
 
     } catch (error) {
@@ -51,7 +51,7 @@ const sendMessage = async (req, res) => {
 
 const fetchChats = async (req, res) => {
     try {
-        console.log("Inside fetch chats");
+        // console.log("Inside fetch chats");
         const receiverId = req.params.receiver;
         const senderId = req.params.sender;
 
@@ -72,7 +72,7 @@ const fetchChats = async (req, res) => {
             }
         ]);
 
-        console.log(senderId, receiverId);
+        // console.log(senderId, receiverId);
         return res.json(matchDocument);
 
     } catch (error) {

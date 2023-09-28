@@ -5,6 +5,7 @@ const userRoute = express.Router()
 const userController = require("../controller/userController")
 const ProfileController = require("../controller/profileController")
 const chatController = require("../controller/chatController")
+const slotAndBookingController = require('../controller/slotBooking')
 
 
 //middleware
@@ -55,6 +56,9 @@ userRoute.post('/sendMessage', chatController.sendMessage)
 userRoute.get('/showChats/receiverId/:receiver/senderId/:sender', chatController.fetchChats)
 
 
+//slots
+userRoute.get('/getSlots/:id', slotAndBookingController.getAllSlots)
+userRoute.post('/addAppoinment', slotAndBookingController.addAppoinment)
 
 
 

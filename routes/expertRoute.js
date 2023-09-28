@@ -29,6 +29,6 @@ expertRoute.get('/expertListing', authMiddleware, expertController.expertlisting
 expertRoute.post('/viewExpert/:id', expertController.viewExpert)
 
 //slots
-expertRoute.post('/addSlote', expertMiddleware, slotAndBookingController.addSlots)
+expertRoute.post('/addslote', expertMiddleware, slotAndBookingController.addSlots)
 
 module.exports = expertRoute
