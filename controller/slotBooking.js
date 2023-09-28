@@ -1,113 +1,165 @@
 const Slot = require('../model/expert/slot')
 const moment = require('moment')
+const Appointment = require('../model/expert/appoinment')
 
 const addSlots = async (req, res) => {
     try {
-        console.log("inside addSlots");
-        const ExpertId = req.headers.expertId
-        const { startTime, endTime, date } = req.body
-
-        console.log(date);
-        console.log(new Date(date));
-
-
-        if (date == date) {
-            console.log(true);
+        const ExpertId = req.headers.expertId;
+        const { startTime, endTime, date } = req.body;
+        if (!date || !startTime || !endTime) {
+            return res.status(400).send('All fields are required');
         }
 
-
-        const startingTime = moment(startTime, 'h:mm A')
+        const startingTime = moment(startTime, 'h:mm A');
         const currentDate = new Date();
         const slotDate = moment(date);
         const endingTime = moment(endTime, 'h:mm A');
-        const slotDuration = 60
-        //Is every field filled
+        const slotDuration = 60;
 
-        if (!date || !startTime || !endTime) {
-            return res.staus(404).send('All fields are required')
-        }
-        console.log(slotDate.toDate());
-
-        //validation Is slote date greater than current date? 
+        // Validation: Is slotDate greater than the current date?
         if (slotDate.toDate() <= currentDate) {
-            console.log("slote must be in future");
+            return res.status(400).send('Slot must be in the future');
         }
 
-        //validation Is ending time greater than starting time
-        const expectedEndingTime = startingTime.clone().add(slotDuration, 'minutes');
-        if (endingTime.isSameOrBefore(expectedEndingTime)) {
-            console.log('Slotes must have 1 hour duration');
-        }
+        // Validation: Is ending time greater than starting time?
         if (endingTime.isBefore(startingTime)) {
-            console.log('Ending time cannot be less than starting time');
+            return res.status(400).send('Ending time cannot be less than starting time');
         }
 
-        const isSlotExist = await Slot.find
+        // Calculate the difference in minutes
+        const durationInMinutes = endingTime.diff(startingTime, 'minutes');
+        if (durationInMinutes < slotDuration) {
+            return res.status(400).send('Minimum slot duration is 1 hour');
+        }
 
-
+        // Check if the slot already exists
         const findSlot = await Slot.findOne({
-            expert: ExpertId, 'slotes.date': new Date(date),
-            $or: [
-                {
-                    $and: [
-                        { 'slotes.slot_time': { $gte: startingTime } },
-                        { 'slotes.slot_time': { $lt: endingTime } }
-                    ]
+            expert: ExpertId,
 
-
-                },
-                {
-                    $and: [
-                        { 'slotes.slot_time': { $gte: new Date(`2000-01-01 ${startingTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false }) } },
-                        { 'slotes.slot_time': { $lt: new Date(`2000-01-01 ${endingTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false }) } }
-                    ]
+            'slotes': {
+                $elemMatch: {
+                    'slot_time': { $gte: startingTime.format('h:mm A'), $lt: endingTime.format('h:mm A') }
                 }
-            ]
-        });
+            }
+        })
+        console.log(findSlot, "findSlot");
+
+
 
         if (findSlot) {
-            return res.status(409).send({ message: "slote alredy exist" })
+            return res.status(409).send({ message: "Slot already exists" });
         }
 
-        const createSlotes = generateTimeSlots(startTime, endTime, slotDuration, date)
-        function generateTimeSlots(startTime, endTime, slotDuration, slotDate) {
+        const findSlots = await Slot.findOne({ expert: ExpertId })
+        const createSlots = generateTimeSlots(startTime, endTime, slotDuration, date);
 
+        // Function for slot partitioning
+        function generateTimeSlots(startTime, endTime, slotDuration, date) {
+            console.log("endtimeeeeee", endTime);
+            console.log("start time", startTime);
             const slots = [];
-            const start = new Date(`${slotDate} ${startTime}`);
-            const end = new Date(`${slotDate} ${endTime}`);
 
+            const end = new Date(`${date} ${endTime}`);
+            const start = new Date(` ${date} ${startTime} `);
+
+            console.log({ start });
+            console.log({ end });
             while (start < end) {
                 const slotTime = start.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true
                 });
-                const sloteDoc = {
+
+                const slotDoc = {
                     slot_time: slotTime,
                     slot_date: date,
-                    date: date,
+                    date: slotDate.toDate(),
                     isBooked: false
-                }
-                slots.push(sloteDoc);
+                };
+                console.log(slotDoc);
+                slots.push(slotDoc);
                 start.setMinutes(start.getMinutes() + slotDuration);
             }
+            console.log(slots);
             return slots;
         }
 
 
 
-        // const newSlote = {
-        //     expert: ExpertId,
-        //     date: date,
-        //     startTime: startTime,
-        //     endTime: endTime
-        // }
+        if (!findSlots) {
+            const newSlot = new Slot({
+                expert: ExpertId,
+                slotes: createSlots
+            });
 
+            const createdSlot = await newSlot.save();
+            return res.status(201).json(createdSlot);
+        }
+
+        createSlots.forEach(slot => {
+            findSlots.slotes.push(slot);
+        });
+
+        await findSlots.save();
+        return res.status(200).json(findSlot);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Error in slot booking" });
+    }
+}
+
+
+
+//listing all available slotes of expert in userside
+
+
+const getAllSlots = async (req, res) => {
+    try {
+        console.log("inside get all slotes");
+        const expertId = req.params.id
+        console.log(expertId);
+        const slots = await Slot.find({ expert: expertId })
+        if (slots) {
+            console.log(slots);
+            return res.status(200).json(slots);
+        } else {
+            return res.status(404).json("No slots avilable for this expert");
+        }
 
     } catch (error) {
         console.log(error);
-        res.status(500).send({ message: "error in slot booking" })
+        return res.status(500).send({ message: "Error in slots fetching" });
     }
+}
+
+
+//add appoinment
+
+const addAppoinment = async (req, res) => {
+
+    try {
+        console.log("inside add appoinment");
+        console.log(req.body);
+        const { expertId, userId, slotId, consultingFee, paymentStatus, bookingType } = req.body
+
+        const findSlots = await Slot.findOne({})
+
+
+        const Appoinment = new Appointment({
+            expert: expertId,
+            user: userId,
+            consultingFee: consultingFee,
+            bookingType: bookingType,
+            paymentStatus: paymentStatus,
+            // createdAt:
+
+        })
+
+    } catch (error) {
+        console.log(error);
+    }
+
 }
 
 
@@ -123,15 +175,8 @@ const addSlots = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
 module.exports = {
-    addSlots
+    addSlots,
+    getAllSlots,
+    addAppoinment
 }
