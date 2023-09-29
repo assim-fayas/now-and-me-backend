@@ -1,6 +1,9 @@
+const mongoose = require('mongoose');
 const Slot = require('../model/expert/slot')
+const Expert = require('../model/expert/expert')
 const moment = require('moment')
 const Appointment = require('../model/expert/appoinment')
+
 
 const addSlots = async (req, res) => {
     try {
@@ -142,21 +145,94 @@ const addAppoinment = async (req, res) => {
         console.log("inside add appoinment");
         console.log(req.body);
         const { expertId, userId, slotId, consultingFee, paymentStatus, bookingType } = req.body
+        console.log(expertId, userId, slotId, consultingFee, paymentStatus, bookingType);
+        console.log(slotId, "slot iddddd");
+        if (paymentStatus == 'pending') {
+            console.log("payment not completed,please compleate the payment");
+        }
 
-        const findSlots = await Slot.findOne({})
+
+        const slotid = new mongoose.Types.ObjectId(slotId);
+        console.log(slotid, "moongoose");
+
+        const slot = await Slot.aggregate([
+            {
+                $match: {
+                    'slotes._id': slotid
+                }
+            },
+            {
+                $project: {
+                    matchingSlot: {
+                        $filter: {
+                            input: '$slotes',
+                            as: 'slot',
+                            cond: { $eq: ['$$slot._id', slotid] }
+                        }
+                    }
+                }
+            }
+        ]);
+
+        if (slot.length > 0) {
+            const matchingSlotObject = slot[0].matchingSlot[0];
+            console.log('Matching slot object:', matchingSlotObject);
+            // Access values from the matchingSlotObject
+            const slot_time = matchingSlotObject.slot_time;
+            const slot_date = matchingSlotObject.slot_date;
+            const date = matchingSlotObject.date;
+
+            console.log('slot_time:', slot_time);
+            console.log('slot_date:', slot_date);
+            console.log('date:', date);
 
 
-        const Appoinment = new Appointment({
-            expert: expertId,
-            user: userId,
-            consultingFee: consultingFee,
-            bookingType: bookingType,
-            paymentStatus: paymentStatus,
-            // createdAt:
 
-        })
 
-    } catch (error) {
+            const Appoinment = new Appointment({
+                expert: expertId,
+                user: userId,
+                consultingFee: consultingFee,
+                bookingType: bookingType,
+                paymentStatus: paymentStatus,
+                scheduledAt: {
+                    slot_time: slot_time,
+                    slot_date: slot_date,
+                    date: date
+                }
+
+            })
+            if (Appoinment) {
+                await Appoinment.save()
+
+                result = await Slot.findOneAndUpdate(
+                    { 'slotes._id': slotid },
+                    {
+                        $pull: {
+                            slotes: { _id: slotid }
+                        }
+                    },
+                    { new: true }
+                );
+                if (result) {
+                    res.status(200).send({ message: "Appoinment added and slote deleted successfully" })
+                }
+            }
+
+
+
+        } else {
+            console.log('No matching slot found.');
+        }
+
+        // if appoinment created delete that slot
+
+
+
+
+    }
+
+    catch (error) {
         console.log(error);
     }
 
@@ -164,7 +240,25 @@ const addAppoinment = async (req, res) => {
 
 
 
+// get all appoinments
 
+const getAppoinments = async (req, res) => {
+    try {
+        const user = req.headers.userId
+        const userId = new mongoose.Types.ObjectId(user);
+        const findAppoiments = await Appointment.find({
+            user: userId, bookingType: "video",
+            paymentStatus: "success",
+            status: "notConsulted"
+        }).populate('expert', 'name')
+
+        console.log(findAppoiments);
+
+        return res.status(200).json(findAppoiments)
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 
 
@@ -178,5 +272,6 @@ const addAppoinment = async (req, res) => {
 module.exports = {
     addSlots,
     getAllSlots,
-    addAppoinment
+    addAppoinment,
+    getAppoinments
 }

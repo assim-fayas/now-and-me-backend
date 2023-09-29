@@ -61,6 +61,10 @@ userRoute.get('/getSlots/:id', slotAndBookingController.getAllSlots)
 userRoute.post('/addAppoinment', slotAndBookingController.addAppoinment)
 
 
+// appoinment
+userRoute.get('/appoinmentVideo', authMiddleware, slotAndBookingController.getAppoinments)
+
+
 
 
 
