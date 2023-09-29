@@ -3,8 +3,6 @@ const Chat = require('../model/chat/chat')
 const sendMessage = async (message) => {
     try {
         console.log("Inside send message");
-        // const { sender, receiver, text, senderType, receiverType } = req.body;
-        // console.log(req.body);
         const senderId = message.sender;
         const reciverId = message.receiver;
 

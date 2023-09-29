@@ -7,7 +7,6 @@ const chatSchema = new mongoose.Schema(
 
 
         members: [String],
-
         messages: [
             {
                 text: {
@@ -34,6 +33,7 @@ const chatSchema = new mongoose.Schema(
                     ref: "reciverType",
                     required: true,
                 },
+
 
                 timestamp: {
                     type: Date,

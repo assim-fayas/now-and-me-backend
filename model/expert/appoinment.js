@@ -22,7 +22,12 @@ const appointmentSchema = new Schema({
         type: String,
         enum: ['consulted', 'cancelled', 'notConsulted', 'cancellation-requested'],
         default: 'notConsulted'
-    }
+    }, AppoinmentStatus: {
+        type: String,
+        enum: ["active", "expired"],
+        default: "active"
+
+    },
 }, {
     timestamps: { createdAt: 'created_at' } // You can specify a custom field name for the created timestamp
 });
