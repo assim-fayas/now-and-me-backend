@@ -151,85 +151,99 @@ const addAppoinment = async (req, res) => {
             console.log("payment not completed,please compleate the payment");
         }
 
+        if (bookingType == 'video') {
+            const slotid = new mongoose.Types.ObjectId(slotId);
+            console.log(slotid, "moongoose");
 
-        const slotid = new mongoose.Types.ObjectId(slotId);
-        console.log(slotid, "moongoose");
-
-        const slot = await Slot.aggregate([
-            {
-                $match: {
-                    'slotes._id': slotid
-                }
-            },
-            {
-                $project: {
-                    matchingSlot: {
-                        $filter: {
-                            input: '$slotes',
-                            as: 'slot',
-                            cond: { $eq: ['$$slot._id', slotid] }
+            const slot = await Slot.aggregate([
+                {
+                    $match: {
+                        'slotes._id': slotid
+                    }
+                },
+                {
+                    $project: {
+                        matchingSlot: {
+                            $filter: {
+                                input: '$slotes',
+                                as: 'slot',
+                                cond: { $eq: ['$$slot._id', slotid] }
+                            }
                         }
                     }
                 }
+            ]);
+
+            if (slot.length > 0) {
+                const matchingSlotObject = slot[0].matchingSlot[0];
+                console.log('Matching slot object:', matchingSlotObject);
+                // Access values from the matchingSlotObject
+                const slot_time = matchingSlotObject.slot_time;
+                const slot_date = matchingSlotObject.slot_date;
+                const date = matchingSlotObject.date;
+
+                console.log('slot_time:', slot_time);
+                console.log('slot_date:', slot_date);
+                console.log('date:', date);
+
+
+
+
+                const Appoinment = new Appointment({
+                    expert: expertId,
+                    user: userId,
+                    consultingFee: consultingFee,
+                    bookingType: bookingType,
+                    paymentStatus: paymentStatus,
+                    scheduledAt: {
+                        slot_time: slot_time,
+                        slot_date: slot_date,
+                        date: date
+                    }
+
+                })
+
+                if (Appoinment) {
+                    await Appoinment.save()
+
+                    result = await Slot.findOneAndUpdate(
+                        { 'slotes._id': slotid },
+                        {
+                            $pull: {
+                                slotes: { _id: slotid }
+                            }
+                        },
+                        { new: true }
+                    );
+                    if (result) {
+                        res.status(200).send({ message: "Appoinment added and slote deleted successfully" })
+                    }
+                }
+
+
+
+            } else {
+                console.log('No matching slot found.');
             }
-        ]);
-
-        if (slot.length > 0) {
-            const matchingSlotObject = slot[0].matchingSlot[0];
-            console.log('Matching slot object:', matchingSlotObject);
-            // Access values from the matchingSlotObject
-            const slot_time = matchingSlotObject.slot_time;
-            const slot_date = matchingSlotObject.slot_date;
-            const date = matchingSlotObject.date;
-
-            console.log('slot_time:', slot_time);
-            console.log('slot_date:', slot_date);
-            console.log('date:', date);
-
-
-
-
-            const Appoinment = new Appointment({
+        }
+        if (bookingType == 'chat') {
+            console.log("insideeee chattttt");
+            const chatAppoinment = new Appointment({
                 expert: expertId,
                 user: userId,
                 consultingFee: consultingFee,
                 bookingType: bookingType,
                 paymentStatus: paymentStatus,
-                scheduledAt: {
-                    slot_time: slot_time,
-                    slot_date: slot_date,
-                    date: date
-                }
+
 
             })
-            if (Appoinment) {
-                await Appoinment.save()
 
-                result = await Slot.findOneAndUpdate(
-                    { 'slotes._id': slotid },
-                    {
-                        $pull: {
-                            slotes: { _id: slotid }
-                        }
-                    },
-                    { new: true }
-                );
-                if (result) {
-                    res.status(200).send({ message: "Appoinment added and slote deleted successfully" })
-                }
+            if (chatAppoinment) {
+                await chatAppoinment.save()
+                return res.status(200).send({ message: "chat appoinment added  successfully" })
             }
-
-
-
-        } else {
-            console.log('No matching slot found.');
+            return res.status(404).json("error in chat appoinment");
         }
-
-        // if appoinment created delete that slot
-
-
-
-
     }
 
     catch (error) {
