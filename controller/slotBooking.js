@@ -122,7 +122,43 @@ const getAllSlots = async (req, res) => {
         console.log("inside get all slotes");
         const expertId = req.params.id
         console.log(expertId);
+
+
+        //delete invalidate slotes
+        const currentDate = moment().format('YYYY-MM-DD')
+        console.log(currentDate);
+        const currentHour = moment().format('h:mm A');
+        console.log(currentHour);
+
+        const findslotSlot = await Slot.find({ expert: expertId, 'slotes.slot_date': "2023-10-02", 'slotes.slot_time': "1:00 AM" })
+        console.log(findslotSlot);
+
+        const result = await Slot.updateMany(
+            {
+                expert: expertId,
+                $or: [
+                    { 'slotes.slot_date': { $lte: currentDate } },
+                    { 'slotes.slot_time': { $gt: currentHour } }
+                ]
+            },
+            {
+                $pull: {
+                    'slotes': {
+                        $or: [
+                            { 'slot_date': { $lte: currentDate } },
+                            { 'slot_time': { $gt: currentHour } }
+                        ]
+                    }
+                }
+            }
+        );
+
+        console.log("result", result, "result");
+
+
         const slots = await Slot.find({ expert: expertId })
+
+
         if (slots) {
             console.log(slots);
             return res.status(200).json(slots);
@@ -144,6 +180,8 @@ const addAppoinment = async (req, res) => {
     try {
         console.log("inside add appoinment");
         console.log(req.body);
+        console.log("stopped");
+
         const { expertId, userId, slotId, consultingFee, paymentStatus, bookingType } = req.body
         console.log(expertId, userId, slotId, consultingFee, paymentStatus, bookingType);
         console.log(slotId, "slot iddddd");
@@ -227,7 +265,34 @@ const addAppoinment = async (req, res) => {
             }
         }
         if (bookingType == 'chat') {
-            console.log("insideeee chattttt");
+            console.log("insideeee chattttt section");
+            currentDate = moment().startOf('day');
+            console.log(currentDate);
+
+            //make the appoinment status expired if appoinment  date is less than the current date 
+
+            const ValidatebookedChatDate = await Appointment.updateMany({ $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }] }, { $set: { AppoinmentStatus: "expired" } })
+            console.log(ValidatebookedChatDate, "validate check date");
+
+
+            //validating the user can only book an expert only once in a day
+
+            const validateChat = await Appointment.find({ expert: expertId, user: userId, AppoinmentStatus: "active" }).count()
+            console.log(validateChat);
+
+            if (validateChat >= 1) {
+                return res.status(403).send({ message: "you have already booked for the chat" })
+            }
+
+
+            //validating the total number of appoinments must range between 1 and 5 in a day
+
+            const countOfAvailableChat = await Appointment.find({ expert: expertId, AppoinmentStatus: "active" }).count()
+            if (countOfAvailableChat > 5) {
+                return res.status(404).send({ message: "current expert is full.cureently not available for chatting.try tommarow" })
+            }
+
+
             const chatAppoinment = new Appointment({
                 expert: expertId,
                 user: userId,
