@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Slot = require('../model/expert/slot')
 const Expert = require('../model/expert/expert')
 const moment = require('moment')
-const Appointment = require('../model/expert/appoinment')
+const Appointment = require('../model/expert/appoinment');
+const { response } = require('express');
 
 
 const addSlots = async (req, res) => {
@@ -16,6 +17,7 @@ const addSlots = async (req, res) => {
         const startingTime = moment(startTime, 'h:mm A');
         const currentDate = new Date();
         const slotDate = moment(date);
+        const formattedSlotDate = slotDate.format('YYYY-MM-DD');
         const endingTime = moment(endTime, 'h:mm A');
         const slotDuration = 60;
 
@@ -36,20 +38,24 @@ const addSlots = async (req, res) => {
         }
 
         // Check if the slot already exists
-        const findSlot = await Slot.findOne({
+        const findSlot = await Slot.find({
             expert: ExpertId,
-
             'slotes': {
                 $elemMatch: {
-                    'slot_time': { $gte: startingTime.format('h:mm A'), $lt: endingTime.format('h:mm A') }
+                    'slot_date': formattedSlotDate,
+                    $and: [
+                        { 'slot_time': { $gte: startingTime.format('h:mm A') } },
+                        { 'slot_time': { $lt: endingTime.format('h:mm A') } }
+                    ]
                 }
             }
-        })
-        console.log(findSlot, "findSlot");
+        });
+
+        console.log(findSlot, "findSlot if existeddd");
 
 
 
-        if (findSlot) {
+        if (findSlot.length > 0) {
             return res.status(409).send({ message: "Slot already exists" });
         }
 
@@ -127,26 +133,29 @@ const getAllSlots = async (req, res) => {
         //delete invalidate slotes
         const currentDate = moment().format('YYYY-MM-DD')
         console.log(currentDate);
+        const tomorrowDate = moment().add(1, 'days').format('YYYY-MM-DD');
+
+        console.log(tomorrowDate, "tommorow date");
         const currentHour = moment().format('h:mm A');
         console.log(currentHour);
 
-        const findslotSlot = await Slot.find({ expert: expertId, 'slotes.slot_date': "2023-10-02", 'slotes.slot_time': "1:00 AM" })
-        console.log(findslotSlot);
+        const findslotSlot = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate })
+        console.log(findslotSlot, "current hour");
 
         const result = await Slot.updateMany(
             {
                 expert: expertId,
-                $or: [
+                $and: [
                     { 'slotes.slot_date': { $lte: currentDate } },
-                    { 'slotes.slot_time': { $gt: currentHour } }
+                    { 'slotes.slot_time': { $lte: currentHour } }
                 ]
             },
             {
                 $pull: {
                     'slotes': {
-                        $or: [
+                        $and: [
                             { 'slot_date': { $lte: currentDate } },
-                            { 'slot_time': { $gt: currentHour } }
+                            { 'slot_time': { $lte: currentHour } }
                         ]
                     }
                 }
@@ -160,8 +169,26 @@ const getAllSlots = async (req, res) => {
 
 
         if (slots) {
-            console.log(slots);
-            return res.status(200).json(slots);
+            console.log("slotsssss", slots);
+            const slotToday = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate })
+            console.log(slotToday);
+
+            const slotTomorrow = await Slot.find({
+                expert: expertId,
+                'slotes.slot_date': tomorrowDate
+            });
+
+
+            //correct this validation above slotToday and  slotTomorrow  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  tomorrowDate
+
+            // const slotTomorrow = await Slot.find({
+            //     $and: [
+            //         { slotes: { $all: [{ slot_date: tomorrowDate }] } },
+            //         { expert: expertId }
+            //     ]
+            // });
+            console.log("slots tomorrow", slotTomorrow, "slots tomorrow");
+            return res.status(200).json({ slotToday, slotTomorrow });
         } else {
             return res.status(404).json("No slots avilable for this expert");
         }
@@ -266,18 +293,21 @@ const addAppoinment = async (req, res) => {
         }
         if (bookingType == 'chat') {
             console.log("insideeee chattttt section");
-            currentDate = moment().startOf('day');
+            const currentDate = moment().startOf('day');
             console.log(currentDate);
 
             //make the appoinment status expired if appoinment  date is less than the current date 
 
-            const ValidatebookedChatDate = await Appointment.updateMany({ $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }] }, { $set: { AppoinmentStatus: "expired" } })
+            const ValidatebookedChatDate = await Appointment.updateMany({ bookingType: "chat" }, { $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }] }, { $set: { AppoinmentStatus: "expired", status: "consulted" } })
             console.log(ValidatebookedChatDate, "validate check date");
 
 
             //validating the user can only book an expert only once in a day
 
-            const validateChat = await Appointment.find({ expert: expertId, user: userId, AppoinmentStatus: "active" }).count()
+            const validateChat = await Appointment.find({
+                bookingType: "chat",
+                expert: expertId, user: userId, AppoinmentStatus: "active"
+            }).count()
             console.log(validateChat);
 
             if (validateChat >= 1) {
@@ -319,11 +349,26 @@ const addAppoinment = async (req, res) => {
 
 
 
-// get all appoinments
+// get all video  appoinments
 
 const getAppoinments = async (req, res) => {
     try {
+        console.log("inside get appoinments");
         const user = req.headers.userId
+        const currentDatee = moment().format('YYYY-MM-DD')
+        console.log(currentDatee);
+        const currentDate = moment().startOf('day');
+
+        const currentTime = moment().format('h:mm A');
+        console.log(currentDate, currentTime);
+        // const ValidateActiveAppoinment = await Appointment.updateMany({
+        //     $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }, {
+        //         scheduledAt.
+        //             slot_date:
+        //     }]
+        // },)
+
+
         const userId = new mongoose.Types.ObjectId(user);
         const findAppoiments = await Appointment.find({
             user: userId, bookingType: "video",
@@ -336,11 +381,27 @@ const getAppoinments = async (req, res) => {
         return res.status(200).json(findAppoiments)
     } catch (error) {
         console.log(error);
+        res.status(500).send({ message: "error in appoinment fetching" })
     }
 }
 
 
+const getpreviousvideoAppoinments = async (req, res) => {
 
+    try {
+        console.log("inside previouse appoinment");
+        userId = req.headers.userId
+        const appoinmentHistory = await Appointment.find({ user: userId, bookingType: "video", status: "consulted", AppoinmentStatus: "expired" }).populate('expert', 'name')
+        console.log(appoinmentHistory);
+        return res.status(200).json(appoinmentHistory)
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "error in  previous appoinment fetching" })
+
+    }
+
+}
 
 
 
@@ -352,5 +413,6 @@ module.exports = {
     addSlots,
     getAllSlots,
     addAppoinment,
-    getAppoinments
+    getAppoinments,
+    getpreviousvideoAppoinments
 }

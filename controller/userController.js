@@ -719,6 +719,47 @@ const thoughtsOfSingleUser = async (req, res) => {
 
     }
 }
+const getSingleTHoughts = async (req, res) => {
+    try {
+        // Find the specific post by its ID
+        const postId = req.params.id
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            return res.status(404).send({ message: "no post found on this id" })
+
+        }
+
+        // Count the number of likes for the post
+        const likeCount = await Like.countDocuments({ post: postId });
+
+        // Count the number of comments for the post
+        const commentCount = await Comment.countDocuments({ post: postId });
+
+        // Return the post, like count, and comment count
+        if (post, likeCount, commentCount) {
+            return res.status(200).json({
+                post,
+                likeCount,
+                commentCount,
+            });
+        } else {
+            return res.status(404).send({ message: "error in single thought" })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "error in single thought" })
+    }
+}
+// getPostDetails(postId).then((result) => {
+//     if (result.error) {
+//         console.error(result.error);
+//     } else {
+//         console.log('Post:', result.post);
+//         console.log('Like Count:', result.likeCount);
+//         console.log('Comment Count:', result.commentCount);
+//     }
+// });
 
 const allUsers = async (req, res) => {
     try {
@@ -733,6 +774,26 @@ const allUsers = async (req, res) => {
     } catch (error) {
         console.log(error);
         return res.status(500).send({ message: "error in fetching users" })
+    }
+}
+
+const flagedPosts = async (req, res) => {
+    try {
+        console.log("inside flaged Posts");
+        const flagedPosts = await Post.find({ flags: { $not: { $size: 0 } } }).populate({ path: 'flags.user', select: 'name', }).populate('user', 'name')
+        console.log(flagedPosts);
+        if (flagedPosts) {
+
+            console.log(flagedPosts);
+            return res.status(200).json({ flagedPosts })
+
+        } else {
+            return res.status(500).send({ message: "error in flaged post" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in flaged post" })
     }
 }
 
@@ -759,5 +820,7 @@ module.exports = {
     editComment,
     updateComment,
     thoughtsOfSingleUser,
-    allUsers
+    allUsers,
+    flagedPosts,
+    getSingleTHoughts
 }
