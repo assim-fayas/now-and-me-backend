@@ -41,28 +41,27 @@ userRoute.post('/deleteComment/:id', authMiddleware, userController.deleteCommen
 userRoute.post('/editComment/:id', authMiddleware, userController.editComment)
 userRoute.patch('/updateComment/:id', authMiddleware, userController.updateComment)
 userRoute.get('/thoughtSingleUser', authMiddleware, userController.thoughtsOfSingleUser)
+userRoute.get('/getFlaggedPosts', userController.flagedPosts)
+userRoute.post('/getSingleTHoughts/:id', userController.getSingleTHoughts)
+
 
 //profile
 userRoute.get('/userDetails', authMiddleware, ProfileController.userDetails)
 userRoute.put('/updateProfile', authMiddleware, ProfileController.updateProfile)
 
-
-
-
-
 //chats
 
 userRoute.post('/sendMessage', chatController.sendMessage)
 userRoute.get('/showChats/receiverId/:receiver/senderId/:sender', chatController.fetchChats)
+userRoute.get('/IsChatActive', authMiddleware, chatController.ActiveChats)
+userRoute.get('/previousChats', authMiddleware, chatController.previousChats)
 
 
-//slots
+// slots and  appoinment
 userRoute.get('/getSlots/:id', slotAndBookingController.getAllSlots)
 userRoute.post('/addAppoinment', slotAndBookingController.addAppoinment)
-
-
-// appoinment
 userRoute.get('/appoinmentVideo', authMiddleware, slotAndBookingController.getAppoinments)
+userRoute.get('/previousappoinmentVideo', authMiddleware, slotAndBookingController.getpreviousvideoAppoinments)
 
 
 

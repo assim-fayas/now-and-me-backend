@@ -44,22 +44,7 @@ const postSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  profileImage: {
-    type: String,
-    default: false
-  },
-  pronouns: {
-    type: String,
-    default: false
-  },
-  location:{
-    type:String,
-    default:false
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
+
 });
 
 const Post = mongoose.model('Post', postSchema);
