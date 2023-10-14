@@ -721,9 +721,11 @@ const thoughtsOfSingleUser = async (req, res) => {
 }
 const getSingleTHoughts = async (req, res) => {
     try {
+        console.log("inside single post");
         // Find the specific post by its ID
         const postId = req.params.id
-        const post = await Post.findById(postId);
+        console.log("post iddddd", postId);
+        const post = await Post.findById(postId).populate({ path: 'flags.user', select: 'name', }).populate('user', 'name')
 
         if (!post) {
             return res.status(404).send({ message: "no post found on this id" })
@@ -732,13 +734,15 @@ const getSingleTHoughts = async (req, res) => {
 
         // Count the number of likes for the post
         const likeCount = await Like.countDocuments({ post: postId });
+        console.log(likeCount);
 
         // Count the number of comments for the post
         const commentCount = await Comment.countDocuments({ post: postId });
-
+        console.log(commentCount);
         // Return the post, like count, and comment count
-        if (post, likeCount, commentCount) {
-            return res.status(200).json({
+        if (post) {
+            console.log("ithu kananam", post, likeCount, commentCount);
+            return res.json({
                 post,
                 likeCount,
                 commentCount,

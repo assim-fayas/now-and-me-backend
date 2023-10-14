@@ -299,6 +299,18 @@ const viewExpert = async (req, res) => {
         console.log(error);
     }
 }
+const expertProfile = async (req, res) => {
+    try {
+        console.log("inside expert profile");
+        const expertId = req.headers.expertId
+        console.log(expertId);
+        return
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "error in  Expert profile" })
+
+    }
+}
 
 
 
@@ -313,5 +325,6 @@ module.exports = {
     verifyOtp,
     changePassword,
     expertlisting,
-    viewExpert
+    viewExpert,
+    expertProfile
 }

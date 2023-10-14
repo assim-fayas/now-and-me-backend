@@ -18,6 +18,9 @@ adminRoute.post('/user/block/:id', adminController.blockUser)
 adminRoute.get('/listExperts', adminController.listExperts)
 adminRoute.post('/expert/block/:id', adminController.blockExpert)
 
+//profile
+adminRoute.get('/adminProfile', adminController.profile)
+
 
 
 
