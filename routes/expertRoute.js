@@ -31,4 +31,7 @@ expertRoute.post('/viewExpert/:id', expertController.viewExpert)
 //slots
 expertRoute.post('/addslote', expertMiddleware, slotAndBookingController.addSlots)
 
+//profile
+expertRoute.get('/expertProfile', expertMiddleware, expertController.expertProfile)
+
 module.exports = expertRoute

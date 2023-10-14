@@ -3,6 +3,7 @@ const User = require('../model/user/user')
 const Admin = require('../model/admin/admin')
 const Expert = require('../model/expert/expert')
 
+
 //Admin login
 const adminlogin = async (req, res) => {
     console.log("inside admin");
@@ -99,6 +100,25 @@ const blockExpert = async (req, res) => {
     }
 }
 
+const profile = async (req, res) => {
+    try {
+        console.log("inside admin profile");
+        const admin = await Admin.findOne({})
+        console.log(admin);
+
+        if (admin) {
+            return res.status(200).json({ id: admin._id, name: admin.name, email: admin.email })
+        } else {
+            return res.status(500).send({ message: "Error in admin profile" })
+        }
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Error in  admin Profile" })
+    }
+}
+
 
 
 module.exports = {
@@ -107,6 +127,7 @@ module.exports = {
     blockUser,
     listExperts,
     blockExpert,
+    profile
 
 
 }

@@ -409,10 +409,12 @@ const getpreviousvideoAppoinments = async (req, res) => {
 
 
 
+
 module.exports = {
     addSlots,
     getAllSlots,
     addAppoinment,
     getAppoinments,
-    getpreviousvideoAppoinments
+    getpreviousvideoAppoinments,
+
 }
