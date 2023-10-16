@@ -17,7 +17,7 @@ dbconnect.dbconnect();
 // cors connection
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:4200'
+    origin: process.env.FRONT_END_URL
 }))
 
 app.use(cookieparser())
@@ -39,7 +39,7 @@ app.use('/experts', expertRoute)
 
 
 // database connection 
-const Ddb_url = process.env.DB_URL;
+// const Ddb_url = process.env.DB_URL;
 
 
 // Start the server

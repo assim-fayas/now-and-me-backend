@@ -22,6 +22,11 @@ adminRoute.post('/expert/block/:id', adminController.blockExpert)
 adminRoute.get('/adminProfile', adminController.profile)
 
 
+//dashboard
+adminRoute.get('/dashboard', adminController.adminDashboard)
+adminRoute.get('/adminPie', adminController.adminPieChartData)
+
+
 
 
 
