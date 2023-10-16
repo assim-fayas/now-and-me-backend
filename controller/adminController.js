@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../model/user/user')
 const Admin = require('../model/admin/admin')
 const Expert = require('../model/expert/expert')
+const Appointment = require('../model/expert/appoinment')
 
 
 //Admin login
@@ -119,6 +120,105 @@ const profile = async (req, res) => {
     }
 }
 
+//editprofile
+
+
+
+//admin dashboard
+const adminDashboard = async (req, res) => {
+    try {
+        console.log("inside admin dashboard");
+        // total user count
+        const userCount = await User.find({}).count()
+        //total expert count
+        const ExpertCount = await Expert.find({ isVerified: true }).count()
+
+        console.log(ExpertCount, "expert");
+
+        //total video chat revenue
+        const VideoRevenue = [
+            {
+                $match: {
+                    bookingType: 'video',
+                    status: 'consulted',
+                    AppoinmentStatus: 'expired',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalConsultingFee: {
+                        $sum: '$consultingFee',
+                    },
+                },
+            },
+        ];
+
+        const totalVideoRevenue = await Appointment.aggregate(VideoRevenue);
+
+        const videorevenue = totalVideoRevenue[0].totalConsultingFee
+        console.log(videorevenue);
+
+        // total chat revenue
+        const chatRevenue = [
+            {
+                $match: {
+                    bookingType: 'chat',
+                    status: 'consulted',
+                    AppoinmentStatus: 'expired',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalConsultingFee: {
+                        $sum: '$consultingFee',
+                    },
+                },
+            },
+        ];
+
+        const TotalchatRevenue = await Appointment.aggregate(chatRevenue);
+
+        const chatrevenue = TotalchatRevenue[0].totalConsultingFee;
+        console.log(chatrevenue);
+        // total admin revenue
+        const totalAdminRevenue = (await chatrevenue + await videorevenue) * 0.3
+        console.log(totalAdminRevenue);
+
+        // chat count
+        const countOfChat = await Appointment.find({ $and: [{ bookingType: 'chat', status: 'consulted' }] }).count();
+        console.log(countOfChat);
+        //video chat count
+        const countOfVideoChat = await Appointment.find({ $and: [{ bookingType: 'video', status: 'consulted' }] }).count();
+        console.log(countOfVideoChat);
+        //active appoinments
+        const activeAppoinment = await Appointment.find({ $and: [{ AppoinmentStatus: "active" }] }).count()
+        return res.status(200).json({ chat: countOfChat, video: countOfVideoChat, AdminRevenue: totalAdminRevenue, expertCount: ExpertCount, userCount: userCount, activeappoinment: activeAppoinment })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in admin dashboard" })
+    }
+}
+
+
+const adminPieChartData = async (req, res) => {
+    try {
+        console.log("inside admin piechart");
+        // chat count
+        const countOfChat = await Appointment.find({ $and: [{ bookingType: 'chat', status: 'consulted' }] }).count();
+        console.log(countOfChat);
+        //video chat count
+        const countOfVideoChat = await Appointment.find({ $and: [{ bookingType: 'video', status: 'consulted' }] }).count();
+        console.log(countOfVideoChat);
+        return res.status(200).send([{ chat: countOfChat }, { video: countOfVideoChat }])
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
 
 
 module.exports = {
@@ -127,7 +227,9 @@ module.exports = {
     blockUser,
     listExperts,
     blockExpert,
-    profile
+    profile,
+    adminDashboard,
+    adminPieChartData,
 
 
 }
