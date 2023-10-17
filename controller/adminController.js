@@ -3,6 +3,8 @@ const User = require('../model/user/user')
 const Admin = require('../model/admin/admin')
 const Expert = require('../model/expert/expert')
 const Appointment = require('../model/expert/appoinment')
+const Post = require('../model/user/post')
+const sendEmail = require('../service/sendEmail')
 
 
 //Admin login
@@ -217,6 +219,184 @@ const adminPieChartData = async (req, res) => {
     }
 }
 
+const topPerformers = async (req, res) => {
+    try {
+        // Calculate total earnings by expert
+        // const earningsByExpert = await Appointment.aggregate([
+        //     {
+        //         $group: {
+        //             _id: '$expert',
+        //             totalEarnings: { $sum: '$consultingFee' }
+        //         }
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: 'experts', // The name of the collection where 'Expert' documents are stored
+        //             localField: '_id',
+        //             foreignField: '_id',
+        //             as: 'expertInfo'
+        //         }
+        //     },
+        //     {
+        //         $project: {
+        //             expertName: { $arrayElemAt: ['$expertInfo.name', 0] }, // Replace 'name' with the actual field name in your 'Expert' model
+        //             totalEarnings: 1
+        //         }
+        //     },
+        //     {
+        //         $sort: { totalEarnings: -1 } // Sort by descending totalEarnings
+        //     }
+        // ]).exec();
+
+        // Calculate total earnings by expert and booking type
+        const earningsByExpertAndBookingType = await Appointment.aggregate([
+            {
+                $group: {
+                    _id: {
+                        expert: '$expert',
+                        bookingType: '$bookingType'
+                    },
+                    totalEarnings: { $sum: '$consultingFee' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'experts', // The name of the collection where 'Expert' documents are stored
+                    localField: '_id.expert',
+                    foreignField: '_id',
+                    as: 'expertInfo'
+                }
+            },
+            {
+                $project: {
+                    expertName: { $arrayElemAt: ['$expertInfo.name', 0] }, // Replace 'name' with the actual field name in your 'Expert' model
+                    bookingType: '$_id.bookingType',
+                    totalEarnings: 1
+                }
+            },
+            {
+                $sort: { totalEarnings: -1 } // Sort by descending totalEarnings
+            },
+            {
+                $group: {
+                    _id: '$_id.expert',
+                    expertName: { $first: '$expertName' },
+                    earningsByBookingType: {
+                        $push: {
+                            bookingType: '$bookingType',
+                            totalEarnings: '$totalEarnings'
+                        }
+                    },
+                    totalEarnings: { $sum: '$totalEarnings' } // Calculate the total sum of earnings
+                }
+            },
+            {
+                $sort: { totalEarnings: -1 } // Sort by ascending totalEarnings
+            },
+            {
+                $limit: 3 // Limit the results to three documents
+            }
+        ]).exec();
+
+
+        return res.status(200).json({ earningsByExpertAndBookingType });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'An error occurred while fetching top performers.' });
+    }
+}
+
+
+
+const unverifiedExpert = async (req, res) => {
+    try {
+        console.log(" inside unverified expert");
+        const unverifiedExperts = await Expert.aggregate([
+            {
+                $match: { isVerified: false }
+            },
+            {
+                $project: {
+                    name: 1,
+                    experience: 1,
+                    specialization: { $arrayElemAt: ['$specialization', 0] },
+                    joined: 1
+                }
+            }
+        ]);
+        console.log(unverifiedExperts);
+        return res.status(200).json({ unverifiedExperts });
+
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+const sendwarningMail = async (req, res) => {
+    try {
+        console.log("inside warning mail");
+        const userId = req.params.id
+        const postId = req.params.postId
+
+        const user = await User.findOne({ _id: userId })
+        const post = await Post.findOne({ _id: postId })
+
+        if (post) {
+            const userEmail = user.email
+            const userPost = post.content
+            sendEmail(userEmail, "NOW&ME WARNING EMAIL",
+
+                `dear user,
+
+              ${userPost}  
+   
+              your post is against our community guideline.
+              we are kindly requesting you to review post`)
+
+            return res.status(200).send({ message: "Email send successfully" })
+
+        }
+
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "Error in Email Sending " })
+    }
+}
+
+const blockPost = async (req, res) => {
+    try {
+        console.log("inside blockpost");
+
+        const postId = req.params.postId
+        const userId = req.params.id
+        const user = await User.findOne({ _id: userId })
+        const post = await Post.findOne({ _id: postId })
+        const blockPost = await Post.updateOne({ _id: postId }, { $set: { block: true } })
+
+        if (blockPost) {
+            console.log("blockkk", blockPost);
+
+            sendEmail(user.email, "your post Is blocked",
+
+                `dear user,
+
+          ${post.content}  
+
+          your post is against our community guideline.
+          
+      `)
+
+            return res.status(200).send({ message: "Post Blocked and Email send successfully" })
+        }
+    } catch (error) {
+
+        console.log(error);
+    }
+}
+
 
 
 
@@ -230,6 +410,10 @@ module.exports = {
     profile,
     adminDashboard,
     adminPieChartData,
+    topPerformers,
+    unverifiedExpert,
+    sendwarningMail,
+    blockPost
 
 
 }
