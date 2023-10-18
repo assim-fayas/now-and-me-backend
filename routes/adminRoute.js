@@ -12,6 +12,7 @@ adminRoute.post('/login', adminController.adminlogin)
 //user
 adminRoute.get('/listUsers', adminController.listUsers)
 adminRoute.post('/user/block/:id', adminController.blockUser)
+adminRoute.post('/expert/block/:id', adminController.blockExpert)
 adminRoute.post('/sendmail/:id/:postId', adminController.sendwarningMail)
 adminRoute.post('/blockPost/:id/:postId', adminController.blockPost)
 

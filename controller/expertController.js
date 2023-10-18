@@ -303,7 +303,7 @@ const expertProfile = async (req, res) => {
     try {
         console.log("inside expert profile");
         const expertId = req.headers.expertId
-        console.log(expertId);
+        console.log("expert idddd", expertId);
         return
     } catch (error) {
         console.log(error);

@@ -45,11 +45,19 @@ const listUsers = async (req, res) => {
 const blockUser = async (req, res) => {
     try {
         const user = await User.findOne({ _id: req.params.id })
+
         if (user.isBlocked == true) {
             await User.updateOne({ _id: req.params.id }, { $set: { isBlocked: false } })
+
+            sendEmail(user.email, "Account Retained",
+                `dear user,
+   We are happy announce that you're account is retained`)
             res.status(200).send({ message: "user unblockeddd" })
         } else {
             await User.updateOne({ _id: req.params.id }, { $set: { isBlocked: true } })
+            sendEmail(user.email, "Account Suspended",
+                `dear user,
+        It is noticed that,you act against our community guidlines`)
             res.status(200).send({ message: "user blockeddd" })
         }
     } catch (error) {
@@ -91,11 +99,18 @@ const blockExpert = async (req, res) => {
         if (allexperts.isBlocked == false) {
             console.log("inside false");
             await Expert.updateOne({ _id: req.params.id }, { $set: { isBlocked: true } })
+            sendEmail(allexperts.email, "Account Suspended",
+                `dear user,
+    It is noticed that,you act against our community guidlines`)
+
             res.status(200).send({ message: "expert blocked" })
         } else {
             console.log("else block");
             await Expert.updateOne({ _id: req.params.id }, { $set: { isBlocked: false } })
-            res.status(200).send({ message: "user un blocked" })
+            sendEmail(allexperts.email, "Account Retained",
+                `dear user,
+We are happy announce that you're account is retained`)
+            res.status(200).send({ message: "expert un blocked" })
         }
     } catch (error) {
         console.log(error);
@@ -374,6 +389,15 @@ const blockPost = async (req, res) => {
         const userId = req.params.id
         const user = await User.findOne({ _id: userId })
         const post = await Post.findOne({ _id: postId })
+
+        if (post.block == true) {
+            const blockPost = await Post.updateOne({ _id: postId }, { $set: { block: false } })
+            if (blockPost) {
+                return res.status(200).send({ message: "Post Un Blocked " })
+            }
+
+
+        }
         const blockPost = await Post.updateOne({ _id: postId }, { $set: { block: true } })
 
         if (blockPost) {
