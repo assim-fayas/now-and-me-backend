@@ -266,7 +266,7 @@ const expertlisting = async (req, res) => {
     try {
         const userId = req.headers.userId
         console.log("inside expertlisting");
-        const allExperts = await Expert.find({ isVerified: true })
+        const allExperts = await Expert.find({ isVerified: false })
         if (allExperts) {
             res.status(200).json({ allExperts, userId })
         } else {
