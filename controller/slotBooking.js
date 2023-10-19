@@ -164,20 +164,23 @@ const getAllSlots = async (req, res) => {
 
 
         // Find valid slots for today
-        const slotToday = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate });
-        console.log('slots todayyyyyyy', slotToday);
-        // Find valid slots for tomorrow
+        const slotss = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate });
+
+
         // Find valid slots for tomorrow
         const slots = await Slot.findOne({ expert: expertId, 'slotes.slot_date': tomorrowDate });
 
-        if (slots) {
-            // Filter slots for tomorrow
-            const slotTomorrow = slots.slotes.filter(slot => slot.slot_date === tomorrowDate);
 
-            return res.status(200).json({ slotTomorrow, slotToday });
-        } else {
-            return res.status(200).json({ message: "no slotes" });
-        }
+        // Filter slots for today and tomorrow
+        const slotToday = slots.slotes.filter(slot => slot.slot_date === currentDate);
+        const slotTomorrow = slots.slotes.filter(slot => slot.slot_date === tomorrowDate);
+
+
+
+        return res.status(200).json({ slotTomorrow, slotToday });
+
+
+
 
     } catch (error) {
         console.log(error);
