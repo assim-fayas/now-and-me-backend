@@ -7,7 +7,7 @@ module.exports = {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         }).then(() => {
-            console.log("connect successfully")
+            console.log(" db connect successfully")
         }).catch((err) => {
             console.log(err);
         })

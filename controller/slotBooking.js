@@ -125,72 +125,58 @@ const addSlots = async (req, res) => {
 
 const getAllSlots = async (req, res) => {
     try {
-        console.log("inside get all slotes");
-        const expertId = req.params.id
-        console.log(expertId);
+        // Get the current date and tomorrow's date
+        const currentDate = moment().format('YYYY-MM-DD');
+        const tomorrowDate = moment().add(1, 'day').format('YYYY-MM-DD');
 
+        const currentTime = moment().format('hh:mm A');
+        const expertId = req.params.id;
+        console.log("experts", expertId);
 
-        //delete invalidate slotes
-        const currentDate = moment().format('YYYY-MM-DD')
-        console.log(currentDate);
-        const tomorrowDate = moment().add(1, 'days').format('YYYY-MM-DD');
-
-        console.log(tomorrowDate, "tommorow date");
-        const currentHour = moment().format('h:mm A');
-        console.log(currentHour);
-
-        const findslotSlot = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate })
-        console.log(findslotSlot, "current hour");
-
+        // Delete invalid slots
         const result = await Slot.updateMany(
             {
                 expert: expertId,
-                $and: [
-                    { 'slotes.slot_date': { $lte: currentDate } },
-                    { 'slotes.slot_time': { $lte: currentHour } }
+                'slotes.slot_date': { $lt: currentDate },
+                $or: [
+                    { 'slotes.slot_date': currentDate, 'slotes.slot_time': { $lt: currentTime } },
+                    { 'slotes.slot_date': currentDate, 'slotes.slot_time': currentTime },
                 ]
             },
             {
                 $pull: {
                     'slotes': {
-                        $and: [
-                            { 'slot_date': { $lte: currentDate } },
-                            { 'slot_time': { $lte: currentHour } }
+                        'slot_date': { $lt: currentDate },
+                        $or: [
+                            { 'slot_date': currentDate, 'slot_time': { $lt: currentTime } },
+                            { 'slot_date': currentDate, 'slot_time': currentTime },
                         ]
                     }
                 }
             }
         );
 
-        console.log("result", result, "result");
+        if (result) {
+
+            console.log("result", result, "result");
+        }
 
 
-        const slots = await Slot.find({ expert: expertId })
 
+        // Find valid slots for today
+        const slotToday = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate });
+        console.log('slots todayyyyyyy', slotToday);
+        // Find valid slots for tomorrow
+        // Find valid slots for tomorrow
+        const slots = await Slot.findOne({ expert: expertId, 'slotes.slot_date': tomorrowDate });
 
         if (slots) {
-            console.log("slotsssss", slots);
-            const slotToday = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate })
-            console.log(slotToday);
+            // Filter slots for tomorrow
+            const slotTomorrow = slots.slotes.filter(slot => slot.slot_date === tomorrowDate);
 
-            const slotTomorrow = await Slot.find({
-                expert: expertId,
-                'slotes.slot_date': tomorrowDate
-            });
-
-
-            //correct this validation above slotToday and  slotTomorrow  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  tomorrowDate
-
-            // const slotTomorrow = await Slot.find({
-            //     $and: [
-            //         { slotes: { $all: [{ slot_date: tomorrowDate }] } },
-            //         { expert: expertId }
-            //     ]
-            // });
-            console.log("slots tomorrow", slotTomorrow, "slots tomorrow");
-            return res.status(200).json({ slotToday, slotTomorrow });
+            return res.status(200).json({ slotTomorrow, slotToday });
         } else {
-            return res.status(404).json("No slots avilable for this expert");
+            return res.status(200).json({ message: "no slotes" });
         }
 
     } catch (error) {
