@@ -17,7 +17,7 @@ dbconnect.dbconnect();
 // cors connection
 app.use(cors({
     credentials: true,
-    origin: process.env.FRONT_END_URL
+    origin: ['http://localhost:4200', 'https://nowandme.netlify.app/']
 }))
 
 app.use(cookieparser())
