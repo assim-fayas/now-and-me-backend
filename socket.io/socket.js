@@ -7,7 +7,7 @@ function intializeSocket(server) {
     const io = socketIO(server, {
         pingTimeout: 60000,
         cors: {
-            origin: ['https://nowandme.netlify.app', 'http://localhost:4200']
+            origin: 'https://nowandme.netlify.app'
         },
     });
 

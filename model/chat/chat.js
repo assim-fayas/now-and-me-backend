@@ -33,8 +33,6 @@ const chatSchema = new mongoose.Schema(
                     ref: "reciverType",
                     required: true,
                 },
-
-
                 timestamp: {
                     type: Date,
                     default: Date.now()

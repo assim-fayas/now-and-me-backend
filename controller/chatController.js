@@ -97,7 +97,7 @@ const ActiveChats = async (req, res) => {
         // getting only the active chats
         const userId = req.headers.userId
         const activeChats = await Appointment.find({ user: userId, bookingType: 'chat', AppoinmentStatus: 'active' }).populate('expert', 'name')
-        console.log(activeChats);
+        console.log("active chaaaaatttttttttt", activeChats);
         if (activeChats) {
             return res.status(200).json(activeChats)
         } else {

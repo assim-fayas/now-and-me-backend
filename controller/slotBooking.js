@@ -125,23 +125,16 @@ const addSlots = async (req, res) => {
 
 const getAllSlots = async (req, res) => {
     try {
-        console.log("inside get all slotes");
-        const expertId = req.params.id
-        console.log(expertId);
-
-
-        //delete invalidate slotes
-        const currentDate = moment().format('YYYY-MM-DD')
-        console.log(currentDate);
-        const tomorrowDate = moment().add(1, 'days').format('YYYY-MM-DD');
-
-        console.log(tomorrowDate, "tommorow date");
+        // Get the current date and tomorrow's date
+        const currentDate = moment().format('YYYY-MM-DD');
+        const tomorrowDate = moment().add(1, 'day').format('YYYY-MM-DD');
         const currentHour = moment().format('h:mm A');
-        console.log(currentHour);
 
-        const findslotSlot = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate })
-        console.log(findslotSlot, "current hour");
+        const expertId = req.params.id;
+        console.log("experts", expertId);
+        const currentMoment = moment(currentHour, 'h:mm A');
 
+        // Delete invalid slots
         const result = await Slot.updateMany(
             {
                 expert: expertId,
@@ -163,35 +156,33 @@ const getAllSlots = async (req, res) => {
         );
 
         console.log("result", result, "result");
+        if (result) {
 
-
-        const slots = await Slot.find({ expert: expertId })
-
-
-        if (slots) {
-            console.log("slotsssss", slots);
-            const slotToday = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate })
-            console.log(slotToday);
-
-            const slotTomorrow = await Slot.find({
-                expert: expertId,
-                'slotes.slot_date': tomorrowDate
-            });
-
-
-            //correct this validation above slotToday and  slotTomorrow  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  tomorrowDate
-
-            // const slotTomorrow = await Slot.find({
-            //     $and: [
-            //         { slotes: { $all: [{ slot_date: tomorrowDate }] } },
-            //         { expert: expertId }
-            //     ]
-            // });
-            console.log("slots tomorrow", slotTomorrow, "slots tomorrow");
-            return res.status(200).json({ slotToday, slotTomorrow });
-        } else {
-            return res.status(404).json("No slots avilable for this expert");
+            console.log("result", result, "result");
         }
+
+
+
+        // Find valid slots for today
+
+
+        // Find valid slots for tomorrow
+        const slots = await Slot.findOne({ expert: expertId, 'slotes.slot_date': tomorrowDate });
+
+        if (!slots) {
+            return res.status(200).json({ slotTomorrow: [], slotToday: [] });
+        }
+
+        // Filter slots for today and tomorrow
+        const slotToday = slots.slotes.filter(slot => slot.slot_date === currentDate);
+        const slotTomorrow = slots.slotes.filter(slot => slot.slot_date === tomorrowDate);
+
+
+
+        return res.status(200).json({ slotTomorrow, slotToday });
+
+
+
 
     } catch (error) {
         console.log(error);
@@ -292,6 +283,8 @@ const addAppoinment = async (req, res) => {
             }
         }
         if (bookingType == 'chat') {
+
+
             console.log("insideeee chattttt section");
             const currentDate = moment().startOf('day');
             console.log(currentDate);
@@ -353,37 +346,56 @@ const addAppoinment = async (req, res) => {
 
 const getAppoinments = async (req, res) => {
     try {
-        console.log("inside get appoinments");
-        const user = req.headers.userId
-        const currentDatee = moment().format('YYYY-MM-DD')
-        console.log(currentDatee);
-        const currentDate = moment().startOf('day');
-
+        console.log('inside get appoinments');
+        const user = req.headers.userId;
+        const currentDate = moment().format('YYYY-MM-DD');
+        console.log(currentDate);
         const currentTime = moment().format('h:mm A');
         console.log(currentDate, currentTime);
-        // const ValidateActiveAppoinment = await Appointment.updateMany({
-        //     $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }, {
-        //         scheduledAt.
-        //             slot_date:
-        //     }]
-        // },)
-
 
         const userId = new mongoose.Types.ObjectId(user);
-        const findAppoiments = await Appointment.find({
-            user: userId, bookingType: "video",
-            paymentStatus: "success",
-            status: "notConsulted"
-        }).populate('expert', 'name')
 
-        console.log(findAppoiments);
+        // Define the conditions to select the appointments to update
+        const conditions = {
+            user: userId,
+            bookingType: 'video',
+            paymentStatus: 'success',
+            AppoinmentStatus: 'active',
+            status: 'notConsulted',
+            'scheduledAt.slot_date': { $lt: currentDate },
+            'scheduledAt.slot_time': { $lt: currentTime },
+        };
+        console.log(conditions);
 
-        return res.status(200).json(findAppoiments)
+        // Define the update to set AppoinmentStatus to "expired"
+        const update = {
+            $set: { AppoinmentStatus: 'expired' },
+        };
+
+        // Update the appointments that meet the conditions
+        const updateResult = await Appointment.updateMany(conditions, update);
+
+        console.log(`Updated ${updateResult.nModified} appointments.`);
+
+        // Fetch the remaining appointments
+        const findAppointments = await Appointment.find({
+            user: userId,
+            bookingType: 'video',
+            paymentStatus: 'success',
+            AppoinmentStatus: 'active',
+            status: 'notConsulted',
+        }).populate('expert', 'name');
+
+        console.log(findAppointments);
+
+        return res.status(200).json(findAppointments);
     } catch (error) {
         console.log(error);
-        res.status(500).send({ message: "error in appoinment fetching" })
+        res.status(500).send({ message: 'error in appointment fetching' });
     }
-}
+};
+
+
 
 
 const getpreviousvideoAppoinments = async (req, res) => {
