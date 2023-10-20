@@ -128,34 +128,34 @@ const getAllSlots = async (req, res) => {
         // Get the current date and tomorrow's date
         const currentDate = moment().format('YYYY-MM-DD');
         const tomorrowDate = moment().add(1, 'day').format('YYYY-MM-DD');
+        const currentHour = moment().format('h:mm A');
 
-        const currentTime = moment().format('hh:mm A');
         const expertId = req.params.id;
         console.log("experts", expertId);
+        const currentMoment = moment(currentHour, 'h:mm A');
 
         // Delete invalid slots
         const result = await Slot.updateMany(
             {
                 expert: expertId,
-                'slotes.slot_date': { $lt: currentDate },
-                $or: [
-                    { 'slotes.slot_date': currentDate, 'slotes.slot_time': { $lt: currentTime } },
-                    { 'slotes.slot_date': currentDate, 'slotes.slot_time': currentTime },
+                $and: [
+                    { 'slotes.slot_date': { $lte: currentDate } },
+                    { 'slotes.slot_time': { $lte: currentHour } }
                 ]
             },
             {
                 $pull: {
                     'slotes': {
-                        'slot_date': { $lt: currentDate },
-                        $or: [
-                            { 'slot_date': currentDate, 'slot_time': { $lt: currentTime } },
-                            { 'slot_date': currentDate, 'slot_time': currentTime },
+                        $and: [
+                            { 'slot_date': { $lte: currentDate } },
+                            { 'slot_time': { $lte: currentHour } }
                         ]
                     }
                 }
             }
         );
 
+        console.log("result", result, "result");
         if (result) {
 
             console.log("result", result, "result");
@@ -164,12 +164,14 @@ const getAllSlots = async (req, res) => {
 
 
         // Find valid slots for today
-        const slotss = await Slot.find({ expert: expertId, 'slotes.slot_date': currentDate });
 
 
         // Find valid slots for tomorrow
         const slots = await Slot.findOne({ expert: expertId, 'slotes.slot_date': tomorrowDate });
 
+        if (!slots) {
+            return res.status(200).json({ slotTomorrow: [], slotToday: [] });
+        }
 
         // Filter slots for today and tomorrow
         const slotToday = slots.slotes.filter(slot => slot.slot_date === currentDate);
@@ -281,6 +283,8 @@ const addAppoinment = async (req, res) => {
             }
         }
         if (bookingType == 'chat') {
+
+
             console.log("insideeee chattttt section");
             const currentDate = moment().startOf('day');
             console.log(currentDate);
@@ -342,37 +346,56 @@ const addAppoinment = async (req, res) => {
 
 const getAppoinments = async (req, res) => {
     try {
-        console.log("inside get appoinments");
-        const user = req.headers.userId
-        const currentDatee = moment().format('YYYY-MM-DD')
-        console.log(currentDatee);
-        const currentDate = moment().startOf('day');
-
+        console.log('inside get appoinments');
+        const user = req.headers.userId;
+        const currentDate = moment().format('YYYY-MM-DD');
+        console.log(currentDate);
         const currentTime = moment().format('h:mm A');
         console.log(currentDate, currentTime);
-        // const ValidateActiveAppoinment = await Appointment.updateMany({
-        //     $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }, {
-        //         scheduledAt.
-        //             slot_date:
-        //     }]
-        // },)
-
 
         const userId = new mongoose.Types.ObjectId(user);
-        const findAppoiments = await Appointment.find({
-            user: userId, bookingType: "video",
-            paymentStatus: "success",
-            status: "notConsulted"
-        }).populate('expert', 'name')
 
-        console.log(findAppoiments);
+        // Define the conditions to select the appointments to update
+        const conditions = {
+            user: userId,
+            bookingType: 'video',
+            paymentStatus: 'success',
+            AppoinmentStatus: 'active',
+            status: 'notConsulted',
+            'scheduledAt.slot_date': { $lt: currentDate },
+            'scheduledAt.slot_time': { $lt: currentTime },
+        };
+        console.log(conditions);
 
-        return res.status(200).json(findAppoiments)
+        // Define the update to set AppoinmentStatus to "expired"
+        const update = {
+            $set: { AppoinmentStatus: 'expired' },
+        };
+
+        // Update the appointments that meet the conditions
+        const updateResult = await Appointment.updateMany(conditions, update);
+
+        console.log(`Updated ${updateResult.nModified} appointments.`);
+
+        // Fetch the remaining appointments
+        const findAppointments = await Appointment.find({
+            user: userId,
+            bookingType: 'video',
+            paymentStatus: 'success',
+            AppoinmentStatus: 'active',
+            status: 'notConsulted',
+        }).populate('expert', 'name');
+
+        console.log(findAppointments);
+
+        return res.status(200).json(findAppointments);
     } catch (error) {
         console.log(error);
-        res.status(500).send({ message: "error in appoinment fetching" })
+        res.status(500).send({ message: 'error in appointment fetching' });
     }
-}
+};
+
+
 
 
 const getpreviousvideoAppoinments = async (req, res) => {
