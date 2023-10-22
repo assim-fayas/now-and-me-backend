@@ -28,8 +28,11 @@ expertRoute.post('/verifyOtp', expertController.verifyOtp)
 expertRoute.get('/expertListing', authMiddleware, expertController.expertlisting)
 expertRoute.post('/viewExpert/:id', expertController.viewExpert)
 
-//slots
+//slots and appoinments
 expertRoute.post('/addslote', expertMiddleware, slotAndBookingController.addSlots)
+expertRoute.get('/appoinmentVideo', expertMiddleware, slotAndBookingController.getAppoinments)
+expertRoute.get('/previousappoinmentVideo', expertMiddleware, slotAndBookingController.getpreviousvideoAppoinments)
+
 
 //profile
 expertRoute.get('/expertProfile', expertMiddleware, expertController.expertProfile)

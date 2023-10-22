@@ -342,12 +342,19 @@ const addAppoinment = async (req, res) => {
 
 
 
-// get all video  appoinments
+// get all user video  appoinments
 
 const getAppoinments = async (req, res) => {
     try {
-        console.log('inside get appoinments');
-        const user = req.headers.userId;
+        let Id
+
+        if (req.headers.userId) {
+            Id = req.headers.userId
+        } else {
+            Id = req.headers.expertId
+        }
+        console.log('inside get all appoinments');
+        const user = Id;
         const currentDate = moment().format('YYYY-MM-DD');
         console.log(currentDate);
         const currentTime = moment().format('h:mm A');
@@ -355,57 +362,111 @@ const getAppoinments = async (req, res) => {
 
         const userId = new mongoose.Types.ObjectId(user);
 
-        // Define the conditions to select the appointments to update
-        const conditions = {
-            user: userId,
-            bookingType: 'video',
-            paymentStatus: 'success',
-            AppoinmentStatus: 'active',
-            status: 'notConsulted',
-            'scheduledAt.slot_date': { $lt: currentDate },
-            'scheduledAt.slot_time': { $lt: currentTime },
-        };
-        console.log(conditions);
+        if (req.headers.userId) {
+            // Define the conditions to select the appointments to update
+            const conditions = {
+                user: userId,
+                bookingType: 'video',
+                paymentStatus: 'success',
+                AppoinmentStatus: 'active',
+                status: 'notConsulted',
+                'scheduledAt.slot_date': { $lt: currentDate },
+                'scheduledAt.slot_time': { $lt: currentTime },
+            };
+            console.log(conditions);
 
-        // Define the update to set AppoinmentStatus to "expired"
-        const update = {
-            $set: { AppoinmentStatus: 'expired' },
-        };
+            // Define the update to set AppoinmentStatus to "expired"
+            const update = {
+                $set: { AppoinmentStatus: 'expired' },
+            };
 
-        // Update the appointments that meet the conditions
-        const updateResult = await Appointment.updateMany(conditions, update);
+            // Update the appointments that meet the conditions
+            const updateResult = await Appointment.updateMany(conditions, update);
 
-        console.log(`Updated ${updateResult.nModified} appointments.`);
+            console.log(`Updated ${updateResult.nModified} appointments.`);
 
-        // Fetch the remaining appointments
-        const findAppointments = await Appointment.find({
-            user: userId,
-            bookingType: 'video',
-            paymentStatus: 'success',
-            AppoinmentStatus: 'active',
-            status: 'notConsulted',
-        }).populate('expert', 'name');
+            // Fetch the remaining appointments
+            const findAppointments = await Appointment.find({
+                user: userId,
+                bookingType: 'video',
+                paymentStatus: 'success',
+                AppoinmentStatus: 'active',
+                status: 'notConsulted',
+            }).populate('expert', 'name');
 
-        console.log(findAppointments);
+            console.log(findAppointments);
 
-        return res.status(200).json(findAppointments);
+            return res.status(200).json(findAppointments);
+        } else {
+
+            const conditions = {
+                expert: userId,
+                bookingType: 'video',
+                paymentStatus: 'success',
+                AppoinmentStatus: 'active',
+                status: 'notConsulted',
+                'scheduledAt.slot_date': { $lt: currentDate },
+                'scheduledAt.slot_time': { $lt: currentTime },
+            };
+            console.log(conditions);
+
+            // Define the update to set AppoinmentStatus to "expired"
+            const update = {
+                $set: { AppoinmentStatus: 'expired' },
+            };
+
+            // Update the appointments that meet the conditions
+            const updateResult = await Appointment.updateMany(conditions, update);
+
+            console.log(`Updated ${updateResult.nModified} appointments.`);
+
+            // Fetch the remaining appointments
+            const findAppointments = await Appointment.find({
+                expert: userId,
+                bookingType: 'video',
+                paymentStatus: 'success',
+                AppoinmentStatus: 'active',
+                status: 'notConsulted',
+            }).populate('user', 'name');
+
+            console.log(findAppointments);
+
+            return res.status(200).json(findAppointments);
+
+
+
+        }
     } catch (error) {
         console.log(error);
         res.status(500).send({ message: 'error in appointment fetching' });
     }
-};
+}
 
 
 
+
+
+// get previouse appoinment of user
 
 const getpreviousvideoAppoinments = async (req, res) => {
 
     try {
+        let Id
         console.log("inside previouse appoinment");
-        userId = req.headers.userId
-        const appoinmentHistory = await Appointment.find({ user: userId, bookingType: "video", status: "consulted", AppoinmentStatus: "expired" }).populate('expert', 'name')
-        console.log(appoinmentHistory);
-        return res.status(200).json(appoinmentHistory)
+        if (req.headers.userId) {
+            Id = req.headers.userId
+        } else {
+            Id = req.headers.expertId
+        }
+        if (req.headers.userId) {
+            const appoinmentHistory = await Appointment.find({ user: Id, bookingType: "video", status: "consulted", AppoinmentStatus: "expired" }).populate('expert', 'name')
+            console.log(appoinmentHistory);
+            return res.status(200).json(appoinmentHistory)
+        } else {
+            const appoinmentHistory = await Appointment.find({ expert: Id, bookingType: "video", status: "consulted", AppoinmentStatus: "expired" }).populate('user', 'name')
+            console.log(appoinmentHistory);
+            return res.status(200).json(appoinmentHistory)
+        }
 
     } catch (error) {
         console.log(error);
@@ -415,9 +476,16 @@ const getpreviousvideoAppoinments = async (req, res) => {
 
 }
 
+// get all  expert video  appoinments
+
+const expertAppoinment = async (req, res) => {
+
+}
 
 
+const expertPreviousAppoinment = async (req, res) => {
 
+}
 
 
 
@@ -428,5 +496,7 @@ module.exports = {
     addAppoinment,
     getAppoinments,
     getpreviousvideoAppoinments,
+    expertAppoinment,
+    expertPreviousAppoinment
 
 }
