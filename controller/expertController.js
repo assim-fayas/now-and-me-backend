@@ -1,5 +1,6 @@
 const Expert = require('../model/expert/expert')
 const Token = require('../model/user/token')
+const ActivateJoin = require('../model/user/activateJoin')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
@@ -313,6 +314,61 @@ const expertProfile = async (req, res) => {
 }
 
 
+const activateJoinButton = async (req, res) => {
+    try {
+        console.log("inside activateJoinButton");
+
+        const { appoinmentId, slot_date, slot_time, link, user } = req.body
+        //check if link is alredy shared
+
+        const check = await ActivateJoin.findOne({ appointment: appoinmentId })
+        if (check) {
+            return res.status(405).send({ message: "you have already shared the link" })
+        } else {
+
+
+            const details = new ActivateJoin({
+                appointment: appoinmentId,
+                user: user,
+                slot_date: slot_date,
+                slot_time: slot_time,
+                link: link
+            })
+            await details.save()
+
+            return res.status(200).send({ message: "Link shared Successfully" })
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const deactivateJoinButton = async (req, res) => {
+    try {
+        console.log("inside deactivate join button");
+        const appoinmentId = req.params.id
+        console.log(appoinmentId);
+        const check = await ActivateJoin.findOne({ appointment: appoinmentId })
+        console.log("checkkkkk", check);
+        if (check) {
+            const deleteLink = await ActivateJoin.deleteOne({ appointment: appoinmentId })
+            if (deleteLink) {
+                return res.status(200).send({ message: "Link revoked successfully" })
+            } else {
+                return res.status(500).send({ message: "error in revoking the link" })
+            }
+
+        } else {
+            return res.status(404).send({ message: "No Active link found" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in revoking the link" })
+    }
+
+}
+
 
 
 module.exports = {
@@ -326,5 +382,8 @@ module.exports = {
     changePassword,
     expertlisting,
     viewExpert,
-    expertProfile
+    expertProfile,
+    activateJoinButton,
+    deactivateJoinButton,
+
 }
