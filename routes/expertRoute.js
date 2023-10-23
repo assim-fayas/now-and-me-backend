@@ -37,4 +37,8 @@ expertRoute.get('/previousappoinmentVideo', expertMiddleware, slotAndBookingCont
 //profile
 expertRoute.get('/expertProfile', expertMiddleware, expertController.expertProfile)
 
+//activate and deactivate user joinvideo
+expertRoute.post('/activateJoinButton', expertMiddleware, expertController.activateJoinButton)
+expertRoute.delete('/DeActivateJoinButton/:id', expertMiddleware, expertController.deactivateJoinButton)
+
 module.exports = expertRoute

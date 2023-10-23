@@ -63,7 +63,8 @@ userRoute.post('/addAppoinment', slotAndBookingController.addAppoinment)
 userRoute.get('/appoinmentVideo', authMiddleware, slotAndBookingController.getAppoinments)
 userRoute.get('/previousappoinmentVideo', authMiddleware, slotAndBookingController.getpreviousvideoAppoinments)
 
-
+//actvate join for videocall
+userRoute.get('/activateJoinButton', authMiddleware, userController.getAllactivateJoinButton)
 
 
 

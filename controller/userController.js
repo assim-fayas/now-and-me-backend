@@ -2,6 +2,7 @@ const User = require('../model/user/user')
 const Post = require('../model/user/post')
 const Like = require('../model/user/like')
 const Comment = require('../model/user/comment')
+const ActivateJoin = require('../model/user/activateJoin')
 const Token = require('../model/user/token')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
@@ -802,6 +803,25 @@ const flagedPosts = async (req, res) => {
 }
 
 
+
+//actvate join for videocall
+
+const getAllactivateJoinButton = async (req, res) => {
+    try {
+        const userId = req.headers.userId
+        const activatedCall = await ActivateJoin.find({ user: userId })
+        if (activatedCall) {
+            return res.status(200).json(activatedCall)
+        } else {
+            return
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "eror in video call activating" })
+    }
+}
+
+
 module.exports = {
     userRegistration,
     verify,
@@ -826,5 +846,6 @@ module.exports = {
     thoughtsOfSingleUser,
     allUsers,
     flagedPosts,
-    getSingleTHoughts
+    getSingleTHoughts,
+    getAllactivateJoinButton
 }
