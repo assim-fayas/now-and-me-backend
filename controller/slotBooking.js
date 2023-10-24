@@ -476,6 +476,34 @@ const getpreviousvideoAppoinments = async (req, res) => {
 
 }
 
+
+
+const changeAppoinmentStatus = async (req, res) => {
+    try {
+        console.log("inside change status");
+        const appoinmentId = req.params.id
+        const changeStatus = await Appointment.updateOne({ _id: appoinmentId }, { $set: { isConsulted: true, status: "consulted", AppoinmentStatus: "expired" } })
+        if (changeStatus) {
+            return res.status(200).send({ message: "status updated successfully" })
+        } else {
+            return res.status(500).send({ message: "error in status updating" })
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in status updating" })
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 // get all  expert video  appoinments
 
 const expertAppoinment = async (req, res) => {
@@ -490,6 +518,8 @@ const expertPreviousAppoinment = async (req, res) => {
 
 
 
+
+
 module.exports = {
     addSlots,
     getAllSlots,
@@ -497,6 +527,7 @@ module.exports = {
     getAppoinments,
     getpreviousvideoAppoinments,
     expertAppoinment,
-    expertPreviousAppoinment
+    expertPreviousAppoinment,
+    changeAppoinmentStatus
 
 }

@@ -96,6 +96,14 @@ const expertSchema = new mongoose.Schema({
         type: Array,
         default: null
     },
+    ratingValue: {
+        type: Array,
+        default: null
+    },
+    rating: {
+        type: String,
+        default: null
+    }
 
 },
     {

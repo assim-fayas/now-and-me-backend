@@ -369,6 +369,52 @@ const deactivateJoinButton = async (req, res) => {
 
 }
 
+const expertRating = async (req, res) => {
+    try {
+        console.log("inside expertlisting");
+        const ExpertId = req.params.id;
+        const value = req.body.value;
+        const expert = await Expert.findOne({ _id: ExpertId });
+
+        if (!expert) {
+            return res.status(404).send({ message: "No user found" });
+        } else {
+            expert.ratingValue.push(value);
+            await expert.save(); // Wait for the expert document to be saved
+
+            console.log("after saving");
+
+            const totalCountOfRating = expert.ratingValue.length;
+            console.log("totalCountOfRating", totalCountOfRating);
+
+            // Use reduce to calculate the sum of values in the array
+            const totalSumOfValues = expert.ratingValue.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue;
+            }, 0);
+
+            console.log("Sum", totalSumOfValues);
+
+            const rating = totalSumOfValues / totalCountOfRating;
+
+            if (!isNaN(rating)) {
+                const addRating = await Expert.updateOne({ _id: ExpertId }, { $set: { rating: rating } });
+
+                if (addRating) {
+                    return res.status(200).send({ message: "Rating added successfully" });
+                } else {
+                    return res.status(500).send({ message: "Error in rating adding" });
+                }
+            } else {
+                return res.status(500).send({ message: "Error in calculating the rating" });
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "Error in rating adding" });
+    }
+};
+
+
 
 
 module.exports = {
@@ -385,5 +431,6 @@ module.exports = {
     expertProfile,
     activateJoinButton,
     deactivateJoinButton,
+    expertRating
 
 }
