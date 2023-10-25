@@ -1,6 +1,7 @@
 const Expert = require('../model/expert/expert')
 const Token = require('../model/user/token')
 const ActivateJoin = require('../model/user/activateJoin')
+const Appointment = require('../model/expert/appoinment')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
@@ -288,12 +289,26 @@ const viewExpert = async (req, res) => {
         if (!expertId) {
             res.status(403).send({ message: "un autharized access" })
         }
-        const expert = await Expert.findById({ _id: expertId })
-        if (!expert) {
-            console.log(expert)
+        const expertt = await Expert.findById({ _id: expertId })
+        if (!expertt) {
+            console.log(expertt)
             res.status(404).send({ message: "Error in expert viewing" })
         } else {
-            res.status(200).json(expert)
+
+            const activeSessionCount = await Appointment.find({
+                expert: expertId,
+                bookingType: 'video',
+                isConsulted: true
+            }).count()
+
+
+            const addSessionCount = await Expert.updateOne({ _id: expertId }, { $set: { sessionCount: activeSessionCount } })
+
+            if (addSessionCount) {
+
+                const expert = await Expert.findById({ _id: expertId })
+                res.status(200).json(expert)
+            }
         }
     } catch (error) {
         res.status(500).send({ message: "Error in expert viewing" })
@@ -394,7 +409,7 @@ const expertRating = async (req, res) => {
 
             console.log("Sum", totalSumOfValues);
 
-            const rating = totalSumOfValues / totalCountOfRating;
+            const rating = Math.round(totalSumOfValues / totalCountOfRating);
 
             if (!isNaN(rating)) {
                 const addRating = await Expert.updateOne({ _id: ExpertId }, { $set: { rating: rating } });
