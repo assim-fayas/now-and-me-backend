@@ -37,6 +37,7 @@ expertRoute.post('/changeAppoinmentStatus/:id', slotAndBookingController.changeA
 
 //profile
 expertRoute.get('/expertProfile', expertMiddleware, expertController.expertProfile)
+expertRoute.post('/updateExpertProfile/:id', expertMiddleware, expertController.updateExpertProfile)
 
 //activate and deactivate user joinvideo
 expertRoute.post('/activateJoinButton', expertMiddleware, expertController.activateJoinButton)
@@ -44,6 +45,9 @@ expertRoute.delete('/DeActivateJoinButton/:id', expertMiddleware, expertControll
 
 // rating
 expertRoute.post('/addrating/:id', expertController.expertRating)
+
+//dashboard
+expertRoute.get('/dashboard', expertMiddleware, expertController.expertDashboard)
 
 
 module.exports = expertRoute
