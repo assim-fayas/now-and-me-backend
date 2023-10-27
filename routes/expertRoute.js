@@ -23,6 +23,7 @@ expertRoute.post('/changePassword', expertController.changePassword)
 //user mail authentication
 expertRoute.get('/expert/:id/verify/:token', expertController.verify)
 expertRoute.post('/verifyOtp', expertController.verifyOtp)
+expertRoute.post('/verifyExpert/:id', expertController.ExpertVerification)
 
 //expertlisting in userside
 expertRoute.get('/expertListing', authMiddleware, expertController.expertlisting)
@@ -37,6 +38,7 @@ expertRoute.post('/changeAppoinmentStatus/:id', slotAndBookingController.changeA
 
 //profile
 expertRoute.get('/expertProfile', expertMiddleware, expertController.expertProfile)
+expertRoute.post('/updateExpertProfile/:id', expertMiddleware, expertController.updateExpertProfile)
 
 //activate and deactivate user joinvideo
 expertRoute.post('/activateJoinButton', expertMiddleware, expertController.activateJoinButton)
@@ -44,6 +46,9 @@ expertRoute.delete('/DeActivateJoinButton/:id', expertMiddleware, expertControll
 
 // rating
 expertRoute.post('/addrating/:id', expertController.expertRating)
+
+//dashboard
+expertRoute.get('/dashboard', expertMiddleware, expertController.expertDashboard)
 
 
 module.exports = expertRoute

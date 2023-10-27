@@ -103,6 +103,10 @@ const expertSchema = new mongoose.Schema({
     rating: {
         type: String,
         default: null
+    },
+    sessionCount: {
+        type: Number,
+        default: null
     }
 
 },

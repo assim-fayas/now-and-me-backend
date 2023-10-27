@@ -1,12 +1,16 @@
+const mongoose = require('mongoose');
 const Expert = require('../model/expert/expert')
 const Token = require('../model/user/token')
 const ActivateJoin = require('../model/user/activateJoin')
+const Appointment = require('../model/expert/appoinment')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const crypto = require('crypto')
 const sendEmail = require('../service/sendEmail')
-const { log } = require('console')
+const { log } = require('console');
+const { response } = require('express');
+const ObjectId = mongoose.Types.ObjectId;
 
 //expert registration
 const expertRegistration1 = async (req, res) => {
@@ -288,12 +292,26 @@ const viewExpert = async (req, res) => {
         if (!expertId) {
             res.status(403).send({ message: "un autharized access" })
         }
-        const expert = await Expert.findById({ _id: expertId })
-        if (!expert) {
-            console.log(expert)
+        const expertt = await Expert.findById({ _id: expertId })
+        if (!expertt) {
+            console.log(expertt)
             res.status(404).send({ message: "Error in expert viewing" })
         } else {
-            res.status(200).json(expert)
+
+            const activeSessionCount = await Appointment.find({
+                expert: expertId,
+                bookingType: 'video',
+                isConsulted: true
+            }).count()
+
+
+            const addSessionCount = await Expert.updateOne({ _id: expertId }, { $set: { sessionCount: activeSessionCount } })
+
+            if (addSessionCount) {
+
+                const expert = await Expert.findById({ _id: expertId })
+                res.status(200).json(expert)
+            }
         }
     } catch (error) {
         res.status(500).send({ message: "Error in expert viewing" })
@@ -305,10 +323,41 @@ const expertProfile = async (req, res) => {
         console.log("inside expert profile");
         const expertId = req.headers.expertId
         console.log("expert idddd", expertId);
-        return
+        const expertDetails = await Expert.find({ _id: expertId }).select('name  bio   city  profileImage joined');
+
+
+        console.log(expertDetails[0]);
+        return res.status(200).json(expertDetails[0])
     } catch (error) {
         console.log(error);
         res.status(500).send({ message: "error in  Expert profile" })
+
+    }
+}
+
+const updateExpertProfile = async (req, res) => {
+    try {
+        console.log("inside update expert profile");
+        const Id = req.params.id
+
+        const { name, city, bio } = req.body
+
+        const expertId = new mongoose.Types.ObjectId(Id);
+        console.log(expertId);
+
+
+        const updateExpert = await Expert.updateOne({ _id: expertId }, { $set: { name: name, city: city, bio: bio } })
+        console.log(updateExpert);
+
+        if (updateExpert) {
+            return res.status(200).send({ message: "profile updated successfully" })
+        } else {
+            return res.status(500).send({ message: "Error in profile updating " })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "Error in profile updating " })
 
     }
 }
@@ -342,6 +391,27 @@ const activateJoinButton = async (req, res) => {
         console.log(error);
     }
 }
+
+const ExpertVerification = async (req, res) => {
+    try {
+        console.log("inside expert verification");
+        console.log(req.params.id);
+        const id = req.params.id
+        const verifyExpert = await Expert.updateOne({ _id: id }, { $set: { isVerified: true } })
+        console.log(verifyExpert);
+        if (verifyExpert) {
+            return res.status(200).json({ message: "Expert verified successfully" })
+        } else {
+            return res.status(404).json({ message: "Expert is not verified" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ message: "Expert is not verified" })
+    }
+}
+
+
 
 const deactivateJoinButton = async (req, res) => {
     try {
@@ -394,7 +464,7 @@ const expertRating = async (req, res) => {
 
             console.log("Sum", totalSumOfValues);
 
-            const rating = totalSumOfValues / totalCountOfRating;
+            const rating = Math.round(totalSumOfValues / totalCountOfRating);
 
             if (!isNaN(rating)) {
                 const addRating = await Expert.updateOne({ _id: ExpertId }, { $set: { rating: rating } });
@@ -416,6 +486,99 @@ const expertRating = async (req, res) => {
 
 
 
+const expertDashboard = async (req, res) => {
+    try {
+
+        console.log("inside dashboard");
+
+        const expertId = req.headers.expertId
+        console.log(expertId);
+
+        //total appoinments
+
+        const countOfTotalAppoinment = await Appointment.find({
+            expert: expertId,
+            AppoinmentStatus: "expired",
+
+            status: "consulted"
+        }).count()
+        console.log(countOfTotalAppoinment);
+
+
+
+        //active appoinments
+
+        const activeAppoinment = await Appointment.find({
+            expert: expertId,
+            AppoinmentStatus: "active"
+        }).count()
+
+        console.log(activeAppoinment);
+
+
+        //chat revenue
+        const objectId = new ObjectId(expertId);
+        const chatRevenue = [
+            {
+                $match: {
+                    expert: objectId,
+                    bookingType: 'chat',
+                    status: 'consulted',
+                    AppoinmentStatus: 'expired',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalConsultingFee: {
+                        $sum: '$consultingFee',
+                    },
+                },
+            },
+        ];
+
+        const TotalchatRevenue = await Appointment.aggregate(chatRevenue);
+
+        const chatrevenue = TotalchatRevenue[0].totalConsultingFee;
+        console.log(chatrevenue);
+
+        //video revenue
+
+        const VideoRevenue = [
+            {
+                $match: {
+                    expert: objectId,
+                    bookingType: 'video',
+                    status: 'consulted',
+                    AppoinmentStatus: 'expired',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalConsultingFee: {
+                        $sum: '$consultingFee',
+                    },
+                },
+            },
+        ];
+        const totalVideoRevenue = await Appointment.aggregate(VideoRevenue);
+        const videorevenue = totalVideoRevenue[0].totalConsultingFee
+        console.log(videorevenue);
+
+
+
+
+        return res.status(200).json({ totalAppoinment: countOfTotalAppoinment, chatRevenue: chatrevenue, videorevenue: videorevenue, activeAppoinment: activeAppoinment })
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in admin dashboard" })
+    }
+}
+
+
+
 
 module.exports = {
     expertRegistration1,
@@ -431,6 +594,9 @@ module.exports = {
     expertProfile,
     activateJoinButton,
     deactivateJoinButton,
-    expertRating
+    expertRating,
+    expertDashboard,
+    updateExpertProfile,
+    ExpertVerification
 
 }

@@ -89,8 +89,15 @@ const ActiveChats = async (req, res) => {
 
         //make the appoinment status expired if appoinment  date is less than the current date 
         const currentDate = moment().startOf('day');
+        const fiveDaysAgo = moment(currentDate).subtract(5, 'days');
         console.log(currentDate);
-        const ValidatebookedChatDate = await Appointment.updateMany({ $and: [{ created_at: { $lt: currentDate.toDate() } }, { AppoinmentStatus: "active" }] }, { $set: { AppoinmentStatus: "expired", status: "consulted" } })
+        console.log(fiveDaysAgo.toDate());
+        const ValidatebookedChatDate = await Appointment.updateMany({
+            $and: [
+                { created_at: { $lt: fiveDaysAgo.toDate() } },
+                { AppoinmentStatus: "active" }
+            ]
+        }, { $set: { AppoinmentStatus: "expired", status: "consulted", bookingType: "chat" } })
         // console.log(ValidatebookedChatDate, "validate check date");
 
 
