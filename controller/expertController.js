@@ -8,7 +8,8 @@ const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const crypto = require('crypto')
 const sendEmail = require('../service/sendEmail')
-const { log } = require('console')
+const { log } = require('console');
+const { response } = require('express');
 const ObjectId = mongoose.Types.ObjectId;
 
 //expert registration
@@ -391,6 +392,27 @@ const activateJoinButton = async (req, res) => {
     }
 }
 
+const ExpertVerification = async (req, res) => {
+    try {
+        console.log("inside expert verification");
+        console.log(req.params.id);
+        const id = req.params.id
+        const verifyExpert = await Expert.updateOne({ _id: id }, { $set: { isVerified: true } })
+        console.log(verifyExpert);
+        if (verifyExpert) {
+            return res.status(200).json({ message: "Expert verified successfully" })
+        } else {
+            return res.status(404).json({ message: "Expert is not verified" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ message: "Expert is not verified" })
+    }
+}
+
+
+
 const deactivateJoinButton = async (req, res) => {
     try {
         console.log("inside deactivate join button");
@@ -574,6 +596,7 @@ module.exports = {
     deactivateJoinButton,
     expertRating,
     expertDashboard,
-    updateExpertProfile
+    updateExpertProfile,
+    ExpertVerification
 
 }

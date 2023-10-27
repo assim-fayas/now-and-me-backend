@@ -23,6 +23,7 @@ expertRoute.post('/changePassword', expertController.changePassword)
 //user mail authentication
 expertRoute.get('/expert/:id/verify/:token', expertController.verify)
 expertRoute.post('/verifyOtp', expertController.verifyOtp)
+expertRoute.post('/verifyExpert/:id', expertController.ExpertVerification)
 
 //expertlisting in userside
 expertRoute.get('/expertListing', authMiddleware, expertController.expertlisting)
