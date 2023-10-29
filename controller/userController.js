@@ -36,7 +36,8 @@ const userRegistration = async (req, res, next) => {
             token: token
         }).save();
         await User.findOne({ email: email })
-        const url = `${process.env.FRONT_END_URL}user/${added._id}/verify/${Ttoken.token}`
+        const url = `${process.env.FRONT_END_URL}/user/${added._id}/verify/${Ttoken.token}`
+        console.log(url, "url");
         sendEmail(user.email, " NOW AND ME mail verification", url)
         return res.status(201).send({ message: "An Email has been sent to your account please Verify" })
     } catch (error) {
@@ -47,6 +48,7 @@ const userRegistration = async (req, res, next) => {
 //user login
 const userLogin = async (req, res) => {
     try {
+        let url
         const user = await User.findOne({ email: req.body.email })
         console.log("inside user");
         if (!user) {
@@ -61,7 +63,7 @@ const userLogin = async (req, res) => {
         if (user.isBlocked) {
             return res.status(404).send({ message: "your account is suspended" })
         }
-        if (!user.isMailVerified) {
+        if (user.isMailVerified == false) {
             console.log("inside email ilaaaa");
             const token = await Token.findOne({ userId: user._id })
             if (!token) {
@@ -71,13 +73,11 @@ const userLogin = async (req, res) => {
                     userId: user._id,
                     token: tokenGen
                 }).save()
-                let url = `${process.env.FRONT_END_URL}user/${user._id}/verify/${Ttoken.token}`
+                url = `${process.env.FRONT_END_URL}/user/${user._id}/verify/${Ttoken.token}`
                 console.log("url", url);
                 sendEmail(user.email, "NOW & ME mail verification", url)
-
+                return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
             }
-            return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
-
         }
         const { _id } = user.toJSON();
         const token = jwt.sign({ _id: _id }, process.env._JWT_USER_SECERETKEY, { expiresIn: 3600 })
