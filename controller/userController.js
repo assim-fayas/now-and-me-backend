@@ -49,6 +49,7 @@ const userRegistration = async (req, res, next) => {
 const userLogin = async (req, res) => {
     try {
         let url
+        let Ttoken
         const user = await User.findOne({ email: req.body.email })
         console.log("inside user");
         if (!user) {
@@ -69,7 +70,7 @@ const userLogin = async (req, res) => {
             if (!token) {
                 console.log("inside token ilaaaa");
                 const tokenGen = crypto.randomBytes(32).toString("hex")
-                const Ttoken = await new Token({
+                Ttoken = await new Token({
                     userId: user._id,
                     token: tokenGen
                 }).save()
@@ -78,6 +79,10 @@ const userLogin = async (req, res) => {
                 sendEmail(user.email, "NOW & ME mail verification", url)
                 return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
             }
+            url = `${process.env.FRONT_END_URL}/user/${user._id}/verify/${Ttoken.token}`
+            console.log("url", url);
+            sendEmail(user.email, "NOW & ME mail verification", url)
+            return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
         }
         const { _id } = user.toJSON();
         const token = jwt.sign({ _id: _id }, process.env._JWT_USER_SECERETKEY, { expiresIn: 3600 })
