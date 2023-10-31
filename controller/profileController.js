@@ -9,7 +9,7 @@ const userDetails = async (req, res) => {
         if (!user) {
             return res.status(401).send({ message: "user un authenticated" })
         }
-        const userDetails = await User.findOne({ _id: user }).select('name bio location joined image pronouns')
+        const userDetails = await User.findOne({ _id: user }).select('name bio location joined image pronouns gender')
         console.log(userDetails);
         if (userDetails) {
             return res.status(200).json({ userDetails })
@@ -29,6 +29,7 @@ const updateProfile = async (req, res) => {
         // let image = req.file.filename
         // console.log("image", image);
         // console.log("image", req.body);
+
 
         const user = req.headers.userId
         const { name, gender, bio, location, pronouns, image } = req.body
