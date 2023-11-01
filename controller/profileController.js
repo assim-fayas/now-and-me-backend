@@ -12,7 +12,7 @@ const userDetails = async (req, res) => {
         const userDetails = await User.findOne({ _id: user }).select('name bio location joined image pronouns gender')
         console.log(userDetails);
         if (userDetails) {
-            return res.status(200).json({ userDetails })
+            return res.status(200).send(userDetails)
         } else {
             return res.status(404).send({ message: "error in fetching user details" })
         }
