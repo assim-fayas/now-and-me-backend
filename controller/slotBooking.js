@@ -314,6 +314,9 @@ const addAppoinment = async (req, res) => {
             if (countOfAvailableChat > 5) {
                 return res.status(404).send({ message: "current expert is full.cureently not available for chatting.try tommarow" })
             }
+            if (paymentStatus == "pending") {
+                return res.status(200).send({ message: "please compleate payment" })
+            }
 
 
             const chatAppoinment = new Appointment({
