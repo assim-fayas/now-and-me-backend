@@ -13,7 +13,7 @@ module.exports = async (user, subject, text) => {
             secure: false,
             auth: {
                 user: `${process.env.USER}`,
-                pass: `${process.env.PASS}`
+                pass: 'twmm glcl hcon vndd'
             },
             tls: {
                 rejectUnauthorized: false
