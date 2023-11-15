@@ -12,7 +12,7 @@ module.exports = async (user, subject, text) => {
             service: process.env.SERVICE,
             secure: false,
             auth: {
-                user: `${process.env.USER}`,
+                user: 'asim1fayas@gmail.com',
                 pass: 'twmm glcl hcon vndd'
             },
             tls: {
