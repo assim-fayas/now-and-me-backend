@@ -128,8 +128,8 @@ const verify = async (req, res) => {
     }
 }
 
-
-//user password   otp generating
+//user password and otp creating
+//user password   otp generatingg
 const otp = async (req, res) => {
     try {
         console.log("inside the change password");
