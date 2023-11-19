@@ -129,7 +129,7 @@ const verify = async (req, res) => {
 }
 
 //user password and otp creating
-//user password   otp generatingg
+
 const otp = async (req, res) => {
     try {
         console.log("inside the change password");
@@ -274,6 +274,7 @@ const postThoughts = async (req, res) => {
 
 const showPosts = async (req, res) => {
     try {
+
         console.log("inside show posts");
         const allPosts = await Post.find({ block: false }).populate('user')
         if (allPosts) {
@@ -413,7 +414,7 @@ const getLikesandComments = async (req, res) => {
                     currentUserName: currentUser ? currentUser.name : null,
                 },
             },
-        ]);
+        ]).sort({ _id: -1 });
 
         return res.json(posts);
 
