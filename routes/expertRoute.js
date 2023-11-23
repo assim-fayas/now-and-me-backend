@@ -28,6 +28,7 @@ expertRoute.post('/verifyExpert/:id', expertController.ExpertVerification)
 //expertlisting in userside
 expertRoute.get('/expertListing', authMiddleware, expertController.expertlisting)
 expertRoute.post('/viewExpert/:id', expertController.viewExpert)
+expertRoute.post('/filterExpert/:name', expertController.expertFiltering)
 
 //slots and appoinments
 expertRoute.post('/addslote', expertMiddleware, slotAndBookingController.addSlots)

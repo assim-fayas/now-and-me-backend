@@ -271,7 +271,13 @@ const expertlisting = async (req, res) => {
     try {
         const userId = req.headers.userId
         console.log("inside expertlisting");
-        const allExperts = await Expert.find({ isVerified: true })
+        const allExperts = await Expert.find({
+            $and: [
+                { isVerified: true },
+                { isBlocked: false }
+            ]
+        });
+
         if (allExperts) {
             res.status(200).json({ allExperts, userId })
         } else {
@@ -577,7 +583,27 @@ const expertDashboard = async (req, res) => {
     }
 }
 
-
+const expertFiltering = async (req, res) => {
+    try {
+        console.log("inside expert filtering");
+        const category = req.params.name
+        const allExperts = await Expert.find({
+            $and: [
+                { specialization: category },
+                { isBlocked: false, isVerified: true }
+            ]
+        });
+        if (allExperts) {
+            res.status(200).json({ allExperts })
+        } else {
+            res.status(404).send({ message: "Error in Expert Listing" })
+        }
+        return
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: "error in expert filtering" })
+    }
+}
 
 
 module.exports = {
@@ -597,6 +623,7 @@ module.exports = {
     expertRating,
     expertDashboard,
     updateExpertProfile,
-    ExpertVerification
+    ExpertVerification,
+    expertFiltering
 
 }
