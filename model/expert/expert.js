@@ -61,7 +61,7 @@ const expertSchema = new mongoose.Schema({
         default: null
     },
     specialization: {
-        type: Array,
+        type: String,
         default: null
     },
     experience: {
