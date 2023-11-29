@@ -2,7 +2,6 @@
 
 // importing express,mongoose,cors,cookieparser modules
 const express = require('express')
-const mongoose = require('mongoose')
 const cors = require('cors')
 const cookieparser = require('cookie-parser')
 const app = express()
