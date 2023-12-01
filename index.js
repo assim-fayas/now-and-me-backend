@@ -37,11 +37,6 @@ app.use('/admin', adminRoute)
 app.use('/experts', expertRoute)
 
 
-
-// database connection 
-// const Ddb_url = process.env.DB_URL;
-
-
 // Start the server
 const server = http.listen(process.env.PORT, () => {
     console.log("Server started listening to port");
