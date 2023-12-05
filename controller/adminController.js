@@ -66,17 +66,6 @@ const blockUser = async (req, res) => {
     }
 }
 
-//unblock users
-// const unblockUser = async (req, res) => {
-//     try {
-//         await User.updateOne({ _id: req.params.id }, { $set: { isBlocked: false } })
-
-//         res.status(200).send({ message: "user unblocked" })
-//     } catch (error) {
-//         res.status(500).send({ message: "error in unblock user" })
-//         console.log(error);
-//     }
-// }
 
 //listexperts
 
@@ -420,10 +409,6 @@ const blockPost = async (req, res) => {
         console.log(error);
     }
 }
-
-
-
-
 
 module.exports = {
     adminlogin,
