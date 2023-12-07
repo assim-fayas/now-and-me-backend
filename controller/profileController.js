@@ -25,12 +25,6 @@ const userDetails = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         console.log("inside userDetails");
-
-        // let image = req.file.filename
-        // console.log("image", image);
-        // console.log("image", req.body);
-
-
         const user = req.headers.userId
         const { name, gender, bio, location, pronouns, image } = req.body
         if (!user) {
