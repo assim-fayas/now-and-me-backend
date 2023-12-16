@@ -762,15 +762,6 @@ const getSingleTHoughts = async (req, res) => {
         res.status(500).send({ message: "error in single thought" })
     }
 }
-// getPostDetails(postId).then((result) => {
-//     if (result.error) {
-//         console.error(result.error);
-//     } else {
-//         console.log('Post:', result.post);
-//         console.log('Like Count:', result.likeCount);
-//         console.log('Comment Count:', result.commentCount);
-//     }
-// });
 
 const allUsers = async (req, res) => {
     try {
@@ -825,6 +816,8 @@ const getAllactivateJoinButton = async (req, res) => {
         console.log(error);
         return res.status(500).send({ message: "eror in video call activating" })
     }
+
+
 }
 
 

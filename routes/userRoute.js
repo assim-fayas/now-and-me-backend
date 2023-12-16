@@ -71,4 +71,5 @@ userRoute.get('/activateJoinButton', authMiddleware, userController.getAllactiva
 
 
 
+
 module.exports = userRoute

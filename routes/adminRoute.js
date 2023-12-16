@@ -1,8 +1,5 @@
 const express = require('express')
 const adminRoute = express.Router()
-
-
-
 //Controller
 const adminController = require("../controller/adminController")
 
@@ -22,31 +19,11 @@ adminRoute.post('/expert/block/:id', adminController.sendwarningMail)
 
 //profile
 adminRoute.get('/adminProfile', adminController.profile)
-
-
 //dashboard
 adminRoute.get('/dashboard', adminController.adminDashboard)
 adminRoute.get('/adminPie', adminController.adminPieChartData)
 adminRoute.get('/topperformers', adminController.topPerformers)
 adminRoute.get('/expertRequest', adminController.unverifiedExpert)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
