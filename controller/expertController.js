@@ -46,18 +46,6 @@ const expertRegistration1 = async (req, res) => {
         } else {
             return res.status(404).send({ message: "Error in expert registration1" })
         }
-        // const token = crypto.randomBytes(32).toString("hex")
-        // const Ttoken = await new Token({
-        //     userId: saved._id,
-        //     token: token
-        // }).save();
-        // await Expert.findOne({ email: email })
-        // console.log("after saved");
-        // const url = `${process.env.FRONT_END_URL}experts/expert/${expert._id}/verify/${Ttoken.token}`
-        // console.log(url, "url");
-        // sendEmail(expert.email, "NOW AND ME MAIL VERIFICATION", url)
-        // return res.status(200).send({ message: "An Email has been sent to your account please Verify" })
-
     } catch (error) {
         res.status(500).send({ message: "Error in expert registration1" })
         console.log(error);
