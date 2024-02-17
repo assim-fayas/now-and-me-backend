@@ -11,7 +11,7 @@ function intializeSocket(server) {
         },
     });
 
-    // Socket.io connection
+    // Socket.io connections
     io.on('connection', (socket) => {
         socket.on('setup', (id) => {
             socket.join(id)
