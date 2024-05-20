@@ -16,9 +16,7 @@ const mongoose = require('mongoose');
 //User Registration
 const userRegistration = async (req, res, next) => {
     try {
-        console.log("inside registration");
         const { name, email, password } = req.body;
-        console.log(req.body);
         const check = await User.findOne({ email: email })
         if (check) {
             return res.status(400).send({ message: "Email alredy exist" })
@@ -51,7 +49,6 @@ const userLogin = async (req, res) => {
         let url
         let Ttoken
         const user = await User.findOne({ email: req.body.email })
-        console.log("inside user");
         if (!user) {
             return res.status(404).send({ message: "user not found" })
         }
@@ -85,7 +82,8 @@ const userLogin = async (req, res) => {
             return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
         }
         const { _id } = user.toJSON();
-        const token = jwt.sign({ _id: _id }, process.env._JWT_USER_SECERETKEY, { expiresIn: 3600 })
+        console.log(_id);
+        const token = jwt.sign({ _id: _id }, process.env._JWT_USER_SECERETKEY, { expiresIn: 36000 })
         console.log("usertoken", token);
         res.status(200).json({
             token
@@ -452,7 +450,7 @@ const updatepost = async (req, res) => {
         console.log(user);
         const post = await Post.findOne({ _id: postid })
         if (!post) {
-            return res.status(404).send("error in post deleting ")
+            return res.status(404).send("error in post updating ")
         }
         const { postAnonymously, thoughts, tags } = req.body;
         console.log("req body", req.body.postAnonymously);

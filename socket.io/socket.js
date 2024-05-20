@@ -24,7 +24,7 @@ function intializeSocket(server) {
         })
 
         socket.on('chatMessage', (message) => {
-            console.log(message.receiver);
+            // console.log(message.receiver);
             io.emit(message.receiver, message);
             console.log(message, "message from socket");
             controller.sendMessage(message)
