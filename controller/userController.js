@@ -54,7 +54,6 @@ const userLogin = async (req, res) => {
         }
         const hashedPassword = user.password
         const password = await bcrypt.compare(req.body.password, hashedPassword)
-        console.log("compared", password);
         if (!password) {
             return res.status(404).send({ message: "password not match" })
         }
@@ -62,27 +61,27 @@ const userLogin = async (req, res) => {
             return res.status(404).send({ message: "your account is suspended" })
         }
         if (user.isMailVerified == false) {
-            console.log("inside email ilaaaa");
+
             const token = await Token.findOne({ userId: user._id })
             if (!token) {
-                console.log("inside token ilaaaa");
+             
                 const tokenGen = crypto.randomBytes(32).toString("hex")
                 Ttoken = await new Token({
                     userId: user._id,
                     token: tokenGen
                 }).save()
                 url = `${process.env.FRONT_END_URL}/user/${user._id}/verify/${Ttoken.token}`
-                console.log("url", url);
+        
                 sendEmail(user.email, "NOW & ME mail verification", url)
                 return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
             }
             url = `${process.env.FRONT_END_URL}/user/${user._id}/verify/${Ttoken.token}`
-            console.log("url", url);
+      
             sendEmail(user.email, "NOW & ME mail verification", url)
             return res.status(400).send({ message: "An Email has been sent to your account please Verify" })
         }
         const { _id } = user.toJSON();
-        console.log(_id);
+       
         const token = jwt.sign({ _id: _id }, process.env._JWT_USER_SECERETKEY, { expiresIn: 36000 })
         console.log("usertoken", token);
         res.status(200).json({
